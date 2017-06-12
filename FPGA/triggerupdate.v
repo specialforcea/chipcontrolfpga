@@ -223,7 +223,7 @@ case (state)
 											  OE <= 1'bZ;								          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ; 
-											  if (reading == 0)begin writing <= 1; end
+											  writing <= 1; 
 								           end			  // Bit 0
          5'b00010:  begin sendtousb <= 1;  datapre[1] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -321,22 +321,14 @@ case (state)
 //		   5'b10100:  sendtousb <= prestoreram[7];
 //		   5'b10101:  sendtousb <= 1; 
 //        
-			5'b01100:  begin  
-											
-											  if (writing == 1)begin
-											  sendtousb <= 1;
+			5'b01100:  begin sendtousb <= 1;
 			                          if (addonew == 0) begin addresspre <= addresspre + 1;addonew <= 1;end
 											  addressfinal <= addresspre;
 											  CE <= 1;		WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
-											  end
-											  
-											  if(correcting == 1)begin show <= 1;end
-											  
-											  
-											  
+ 
 											  end 
          default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -350,9 +342,8 @@ case (state)
 //		  end
 //	 
 
-    if(reading == 1 && readfromusb == 0)begin correcting <= 1; show <= 0;  end
-
-    if(clockdiv1 == 100) begin reading <= 1; writing <= 0; show <= 1;end
+    
+    if(clockdiv1 == 100) begin writing <= 0; show <= 1;end
 
     if (show == 1) begin
 	     case(readstate)
@@ -460,7 +451,7 @@ case (state)
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
-											  clockdiv2 <= 0;
+											 
 									   end
 		   5'b01011:   begin sendtousb <= 1;
 	                                CE <= 1;								          
@@ -469,16 +460,16 @@ case (state)
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ; 
 											  addoner <= 0;
-											  clockdiv2 <= clockdiv2 + 1;
+											  
 									   end
 			5'b01100:  begin sendtousb <= 1;
 											  
-											  clockdiv2 <= 0;
-			                          if (addoner == 0 && correcting == 0) begin
+											  
+			                          if (addoner == 0 ) begin
 			                                  addresspre <= addresspre + 1;
 														 addoner <= 1;
 														 end
-												if(addresspre == addressfinal)begin show <= 0; addresspre <= 0; reading <= 0;end
+												if(addresspre == addressfinal)begin show <= 0; addresspre <= 0; end
 											  CE <= 1;		WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
@@ -1095,7 +1086,7 @@ begin
         5'b01000: if (refclk) readstate <= 5'b01001;    
         5'b01001: if (refclk) readstate <= 5'b01010;
         5'b01010: if (refclk) readstate <= 5'b01011;
-        5'b01011: if (refclk && clockdiv2 == 100) readstate <= 5'b01100;
+        5'b01011: if (refclk) readstate <= 5'b01100;
         5'b01100: if (refclk) readstate <= 5'b01101;		  
 		  5'b01101: if (refclk) readstate <= 5'b00000;
         default: readstate <= 5'b00000;                  
