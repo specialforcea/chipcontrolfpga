@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<instance entity-name="altera_pll_reconfig" version="13.0" >
+<generic name="device_family" value="Cyclone V" />
+<generic name="reconf_width" value="64" />
+<generic name="ENABLE_MIF" value="0" />
+<generic name="MIF_FILE_NAME" value="" />
+<generic name="AUTO_MGMT_CLK_CLOCK_RATE" value="-1" />
+</instance>

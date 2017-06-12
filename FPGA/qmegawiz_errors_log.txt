@@ -1,0 +1,66 @@
+
+
+C:/FPGA/ChipControl_copy/pll_reconfig.v
+
+Mar 03 01PM:49:59>: Megafunction Altera PLL Reconfig v13.1 is not listed in any 
+wizard.lst file in the specified library path(s).Wizard launch aborted
+
+C:/FPGA/ChipControl_copy/pll_reconfig.v
+
+Mar 03 01PM:50:06>: Megafunction Altera PLL Reconfig v13.1 is not listed in any 
+wizard.lst file in the specified library path(s).Wizard launch aborted
+
+C:/FPGA/ChipControl_copy/pll_reconfig.v
+
+Mar 03 01PM:50:37>: Megafunction Altera PLL Reconfig v13.1 is not listed in any 
+wizard.lst file in the specified library path(s).Wizard launch aborted
+
+C:/FPGA/ChipControl_copy/pll_reconfig.v
+
+Mar 03 01PM:50:40>: Megafunction Altera PLL Reconfig v13.1 is not listed in any 
+wizard.lst file in the specified library path(s).Wizard launch aborted
+
+C:/FPGA/ChipControl_copy/pll_reconfig.v
+
+Mar 03 01PM:50:42>: Megafunction Altera PLL Reconfig v13.1 is not listed in any 
+wizard.lst file in the specified library path(s).Wizard launch aborted
+
+C:/FPGA/ChipControl_copy/pll_reconfig.v
+
+Mar 03 01PM:50:56>: Megafunction Altera PLL Reconfig v13.1 is not listed in any 
+wizard.lst file in the specified library path(s).Wizard launch aborted
+
+C:/FPGA/ChipControl_copy/pll_reconfig.v
+
+Mar 03 01PM:51:26>: Megafunction Altera PLL Reconfig v13.1 is not listed in any 
+wizard.lst file in the specified library path(s).Wizard launch aborted
+
+C:/FPGA/ChipControl_copy/pll_reconfig.v
+
+Mar 03 01PM:51:34>: Megafunction Altera PLL Reconfig v13.1 is not listed in any 
+wizard.lst file in the specified library path(s).Wizard launch aborted
+
+C:/FPGA/ChipControl_copy/pll_reconfig.v
+
+Mar 03 01PM:52:50>: Megafunction Altera PLL Reconfig v13.1 is not listed in any 
+wizard.lst file in the specified library path(s).Wizard launch aborted
+
+C:/FPGA/ChipControl_copy/pll_reconfig.v
+
+Mar 03 01PM:52:55>: Megafunction Altera PLL Reconfig v13.1 is not listed in any 
+wizard.lst file in the specified library path(s).Wizard launch aborted
+
+C:/FPGA/ChipControl_copy/pll_reconfig.v
+
+Mar 03 01PM:52:56>: Megafunction Altera PLL Reconfig v13.1 is not listed in any 
+wizard.lst file in the specified library path(s).Wizard launch aborted
+
+C:/FPGA/ChipControl_copy/pll_reconfig.v
+
+Mar 03 01PM:55:13>: Megafunction Altera PLL Reconfig v13.1 is not listed in any 
+wizard.lst file in the specified library path(s).Wizard launch aborted
+
+C:/FPGA/ChipControl_copy/pll_reconfig.v
+
+Mar 03 01PM:57:36>: Megafunction Altera PLL Reconfig v13.1 is not listed in any 
+wizard.lst file in the specified library path(s).Wizard launch aborted

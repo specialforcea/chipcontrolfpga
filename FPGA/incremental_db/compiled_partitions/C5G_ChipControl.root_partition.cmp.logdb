@@ -1,0 +1,7 @@
+v1
+GXB_MERGING,PLL Output Counter,204945,pll:b2v_inst|pll_0002:pll_inst|altera_pll:altera_pll_i|altera_cyclonev_pll:cyclonev_pll|counter[0].output_counter,pll:b2v_inst|pll_0002:pll_inst|altera_pll:altera_pll_i|altera_cyclonev_pll:cyclonev_pll|counter[3].output_counter,
+GXB_MERGING,PLL Output Counter,204947,pll:b2v_inst|pll_0002:pll_inst|altera_pll:altera_pll_i|altera_cyclonev_pll:cyclonev_pll|counter[1].output_counter,pll:b2v_inst|pll_0002:pll_inst|altera_pll:altera_pll_i|altera_cyclonev_pll:cyclonev_pll|counter[4].output_counter,
+GXB_MERGING,PLL Output Counter,204948,pll:b2v_inst|pll_0002:pll_inst|altera_pll:altera_pll_i|altera_cyclonev_pll:cyclonev_pll|counter[2].output_counter,pll:b2v_inst|pll_0002:pll_inst|altera_pll:altera_pll_i|altera_cyclonev_pll:cyclonev_pll|counter[5].output_counter,
+GXB_MERGING,Clock enable block,21793,pll:b2v_inst|pll_0002:pll_inst|altera_pll:altera_pll_i|altera_cyclonev_pll:cyclonev_pll|divclk[0]~CLKENA0,pll:b2v_inst|pll_0002:pll_inst|altera_pll:altera_pll_i|altera_cyclonev_pll:cyclonev_pll|divclk[3]~CLKENA0,
+GXB_MERGING,Clock enable block,21795,pll:b2v_inst|pll_0002:pll_inst|altera_pll:altera_pll_i|altera_cyclonev_pll:cyclonev_pll|divclk[2]~CLKENA0,pll:b2v_inst|pll_0002:pll_inst|altera_pll:altera_pll_i|altera_cyclonev_pll:cyclonev_pll|divclk[5]~CLKENA0,
+GXB_MERGING,Clock enable block,21796,pll:b2v_inst|pll_0002:pll_inst|altera_pll:altera_pll_i|altera_cyclonev_pll:cyclonev_pll|divclk[1]~CLKENA0,pll:b2v_inst|pll_0002:pll_inst|altera_pll:altera_pll_i|altera_cyclonev_pll:cyclonev_pll|divclk[4]~CLKENA0,

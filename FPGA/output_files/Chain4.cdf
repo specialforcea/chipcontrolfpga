@@ -1,0 +1,13 @@
+/* Quartus II 64-Bit Version 13.0.0 Build 156 04/24/2013 SJ Web Edition */
+JedecChain;
+	FileRevision(JESD32A);
+	DefaultMfr(6E);
+
+	P ActionCode(Cfg)
+		Device PartName(5CGXFC5C6F27) Path("C:/files/ChipControl_2.9/output_files/") File("C5G_ChipControl.sof") MfrSpec(OpMask(1));
+
+ChainEnd;
+
+AlteraBegin;
+	ChainType(JTAG);
+AlteraEnd;

@@ -1,0 +1,197 @@
+------------------------------------------------------------
+TimeQuest Timing Analyzer Summary
+------------------------------------------------------------
+
+Type  : Slow 1100mV 85C Model Setup 'triggerupdate:triggerupdate_inst|clockdiv[0]'
+Slack : -5.047
+TNS   : -33.035
+
+Type  : Slow 1100mV 85C Model Setup 'Gen_CLK:Gen_CLK_inst|CLKreg'
+Slack : -2.430
+TNS   : -197.219
+
+Type  : Slow 1100mV 85C Model Setup 'CLOCK_50_B5B'
+Slack : -1.366
+TNS   : -75.918
+
+Type  : Slow 1100mV 85C Model Hold 'CLOCK_50_B5B'
+Slack : -2.476
+TNS   : -59.286
+
+Type  : Slow 1100mV 85C Model Hold 'Gen_CLK:Gen_CLK_inst|CLKreg'
+Slack : -0.653
+TNS   : -47.251
+
+Type  : Slow 1100mV 85C Model Hold 'triggerupdate:triggerupdate_inst|clockdiv[0]'
+Slack : 1.147
+TNS   : 0.000
+
+Type  : Slow 1100mV 85C Model Recovery 'CLOCK_50_B5B'
+Slack : 17.041
+TNS   : 0.000
+
+Type  : Slow 1100mV 85C Model Removal 'CLOCK_50_B5B'
+Slack : 1.732
+TNS   : 0.000
+
+Type  : Slow 1100mV 85C Model Minimum Pulse Width 'Gen_CLK:Gen_CLK_inst|CLKreg'
+Slack : -0.538
+TNS   : -101.829
+
+Type  : Slow 1100mV 85C Model Minimum Pulse Width 'triggerupdate:triggerupdate_inst|clockdiv[0]'
+Slack : -0.538
+TNS   : -6.670
+
+Type  : Slow 1100mV 85C Model Minimum Pulse Width 'b2v_inst|pll_inst|altera_pll_i|cyclonev_pll|fpll_0|fpll|vcoph[0]'
+Slack : 1.666
+TNS   : 0.000
+
+Type  : Slow 1100mV 85C Model Minimum Pulse Width 'CLOCK_50_B5B'
+Slack : 9.194
+TNS   : 0.000
+
+Type  : Slow 1100mV 0C Model Setup 'triggerupdate:triggerupdate_inst|clockdiv[0]'
+Slack : -5.368
+TNS   : -35.150
+
+Type  : Slow 1100mV 0C Model Setup 'Gen_CLK:Gen_CLK_inst|CLKreg'
+Slack : -2.450
+TNS   : -198.857
+
+Type  : Slow 1100mV 0C Model Setup 'CLOCK_50_B5B'
+Slack : -1.076
+TNS   : -48.527
+
+Type  : Slow 1100mV 0C Model Hold 'CLOCK_50_B5B'
+Slack : -2.597
+TNS   : -108.620
+
+Type  : Slow 1100mV 0C Model Hold 'Gen_CLK:Gen_CLK_inst|CLKreg'
+Slack : -0.507
+TNS   : -32.090
+
+Type  : Slow 1100mV 0C Model Hold 'triggerupdate:triggerupdate_inst|clockdiv[0]'
+Slack : 1.093
+TNS   : 0.000
+
+Type  : Slow 1100mV 0C Model Recovery 'CLOCK_50_B5B'
+Slack : 17.153
+TNS   : 0.000
+
+Type  : Slow 1100mV 0C Model Removal 'CLOCK_50_B5B'
+Slack : 1.650
+TNS   : 0.000
+
+Type  : Slow 1100mV 0C Model Minimum Pulse Width 'Gen_CLK:Gen_CLK_inst|CLKreg'
+Slack : -0.538
+TNS   : -100.279
+
+Type  : Slow 1100mV 0C Model Minimum Pulse Width 'triggerupdate:triggerupdate_inst|clockdiv[0]'
+Slack : -0.538
+TNS   : -6.924
+
+Type  : Slow 1100mV 0C Model Minimum Pulse Width 'b2v_inst|pll_inst|altera_pll_i|cyclonev_pll|fpll_0|fpll|vcoph[0]'
+Slack : 1.666
+TNS   : 0.000
+
+Type  : Slow 1100mV 0C Model Minimum Pulse Width 'CLOCK_50_B5B'
+Slack : 9.127
+TNS   : 0.000
+
+Type  : Fast 1100mV 85C Model Setup 'triggerupdate:triggerupdate_inst|clockdiv[0]'
+Slack : -2.619
+TNS   : -17.319
+
+Type  : Fast 1100mV 85C Model Setup 'Gen_CLK:Gen_CLK_inst|CLKreg'
+Slack : -0.839
+TNS   : -56.240
+
+Type  : Fast 1100mV 85C Model Setup 'CLOCK_50_B5B'
+Slack : 0.013
+TNS   : 0.000
+
+Type  : Fast 1100mV 85C Model Hold 'CLOCK_50_B5B'
+Slack : -1.558
+TNS   : -57.042
+
+Type  : Fast 1100mV 85C Model Hold 'Gen_CLK:Gen_CLK_inst|CLKreg'
+Slack : -0.442
+TNS   : -36.229
+
+Type  : Fast 1100mV 85C Model Hold 'triggerupdate:triggerupdate_inst|clockdiv[0]'
+Slack : 0.536
+TNS   : 0.000
+
+Type  : Fast 1100mV 85C Model Recovery 'CLOCK_50_B5B'
+Slack : 18.256
+TNS   : 0.000
+
+Type  : Fast 1100mV 85C Model Removal 'CLOCK_50_B5B'
+Slack : 0.810
+TNS   : 0.000
+
+Type  : Fast 1100mV 85C Model Minimum Pulse Width 'triggerupdate:triggerupdate_inst|clockdiv[0]'
+Slack : -0.006
+TNS   : -0.030
+
+Type  : Fast 1100mV 85C Model Minimum Pulse Width 'Gen_CLK:Gen_CLK_inst|CLKreg'
+Slack : 0.057
+TNS   : 0.000
+
+Type  : Fast 1100mV 85C Model Minimum Pulse Width 'b2v_inst|pll_inst|altera_pll_i|cyclonev_pll|fpll_0|fpll|vcoph[0]'
+Slack : 1.666
+TNS   : 0.000
+
+Type  : Fast 1100mV 85C Model Minimum Pulse Width 'CLOCK_50_B5B'
+Slack : 9.093
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Setup 'triggerupdate:triggerupdate_inst|clockdiv[0]'
+Slack : -2.591
+TNS   : -17.213
+
+Type  : Fast 1100mV 0C Model Setup 'Gen_CLK:Gen_CLK_inst|CLKreg'
+Slack : -0.674
+TNS   : -42.016
+
+Type  : Fast 1100mV 0C Model Setup 'CLOCK_50_B5B'
+Slack : 0.037
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Hold 'CLOCK_50_B5B'
+Slack : -1.568
+TNS   : -76.927
+
+Type  : Fast 1100mV 0C Model Hold 'Gen_CLK:Gen_CLK_inst|CLKreg'
+Slack : -0.377
+TNS   : -30.118
+
+Type  : Fast 1100mV 0C Model Hold 'triggerupdate:triggerupdate_inst|clockdiv[0]'
+Slack : 0.480
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Recovery 'CLOCK_50_B5B'
+Slack : 18.452
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Removal 'CLOCK_50_B5B'
+Slack : 0.742
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Minimum Pulse Width 'triggerupdate:triggerupdate_inst|clockdiv[0]'
+Slack : 0.012
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Minimum Pulse Width 'Gen_CLK:Gen_CLK_inst|CLKreg'
+Slack : 0.083
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Minimum Pulse Width 'b2v_inst|pll_inst|altera_pll_i|cyclonev_pll|fpll_0|fpll|vcoph[0]'
+Slack : 1.666
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Minimum Pulse Width 'CLOCK_50_B5B'
+Slack : 9.087
+TNS   : 0.000
+
+------------------------------------------------------------

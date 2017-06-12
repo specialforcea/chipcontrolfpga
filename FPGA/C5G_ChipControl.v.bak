@@ -1,0 +1,135 @@
+// Copyright (C) 1991-2013 Altera Corporation
+// Your use of Altera Corporation's design tools, logic functions 
+// and other software and tools, and its AMPP partner logic 
+// functions, and any output files from any of the foregoing 
+// (including device programming or simulation files), and any 
+// associated documentation or information are expressly subject 
+// to the terms and conditions of the Altera Program License 
+// Subscription Agreement, Altera MegaCore Function License 
+// Agreement, or other applicable license agreement, including, 
+// without limitation, that your use is for the sole purpose of 
+// programming logic devices manufactured by Altera and sold by 
+// Altera or its authorized distributors.  Please refer to the 
+// applicable agreement for further details.
+
+module C5G_ChipControl
+(
+// {ALTERA_ARGS_BEGIN} DO NOT REMOVE THIS LINE!
+
+	CLOCK_50_B5B,
+	CLOCK_50_B6A,
+	CLOCK_50_B7A,
+	CLOCK_50_B8A,
+	CLOCK_125_p,
+
+	RF,
+
+	DIO,
+
+	SYNC,
+	SCLK,
+
+	S1MOSI,
+	S2MOSI,
+	S3MOSI,
+	S4MOSI,
+	S5MOSI,
+	S6MOSI,
+	S7MOSI,
+	S8MOSI,
+	S9MOSI,
+	S10MOSI,
+	S11MOSI,
+	S12MOSI,
+
+// {ALTERA_ARGS_END} DO NOT REMOVE THIS LINE!
+
+);
+
+// {ALTERA_IO_BEGIN} DO NOT REMOVE THIS LINE!
+input			CLOCK_50_B5B;
+inout			CLOCK_50_B6A;
+input			CLOCK_50_B7A;
+input			CLOCK_50_B8A;
+input			CLOCK_125_p;
+
+inout	[1:12] RF;
+
+inout	[1:4]	DIO;
+
+output			SYNC;
+output			SCLK;
+
+output	[1:8]	S1MOSI;
+output	[1:8]	S2MOSI;
+output	[1:8]	S3MOSI;
+output	[1:8]	S4MOSI;
+output	[1:8]	S5MOSI;
+output	[1:8]	S6MOSI;
+output	[1:8]	S7MOSI;
+output	[1:8]	S8MOSI;
+output	[1:8]	S9MOSI;
+output	[1:8]	S10MOSI;
+output	[1:8]	S11MOSI;
+output	[1:8]	S12MOSI;
+
+wire [0:5]c;
+
+// {ALTERA_IO_END} DO NOT REMOVE THIS LINE!
+// {ALTERA_MODULE_BEGIN} DO NOT REMOVE THIS LINE!
+// {ALTERA_MODULE_END} DO NOT REMOVE THIS LINE!
+
+
+//=======================================================
+//  Structural coding
+//=======================================================
+
+// Clock Generator
+Gen_CLK Gen_CLK_inst(
+	.CLOCK_50( CLOCK_50_B5B),
+	.RESET_N( DIO[1]),
+	.REFCLK( DIO[2]),
+	.SCLK( SCLK)
+	);
+
+// RF Sig Generator
+pll	b2v_inst(
+	.refclk( CLOCK_50_B5B),
+	.outclk_0(c[0]),
+	.outclk_1(c[1]),
+	.outclk_2(c[2]),
+	.outclk_3(c[3]),
+	.outclk_4(c[4]),
+	.outclk_5(c[5])
+	);	
+
+	//Mode Selector
+ModeSelect ModeSelect_inst(
+	.refclk( CLOCK_50_B5B),
+	.RESET_N( DIO[1]),
+	.MODE( DIO[3]),
+	.C0( c),
+	.RFout( RF[1:12]),
+);	
+	
+// DAC control Slot1
+CTRL_DAC CTRL_DAC_inst(
+	.SCLK( SCLK),
+	.RESET_N (DIO[1] ),
+	.SYNC( SYNC),
+	.ACTIVE_N( DIO[4]),
+	.SDIN1 ( S1MOSI[1:8]),
+	.SDIN2 ( S2MOSI[1:8]),	
+	.SDIN3 ( S3MOSI[1:8]),
+	.SDIN4 ( S4MOSI[1:8]),	
+	.SDIN5 ( S5MOSI[1:8]),
+	.SDIN6 ( S6MOSI[1:8]),
+	.SDIN7 ( S7MOSI[1:8]),
+	.SDIN8 ( S8MOSI[1:8]),
+	.SDIN9 ( S9MOSI[1:8]),	
+	.SDIN10 ( S10MOSI[1:8]),	
+	.SDIN11 ( S11MOSI[1:8]),	
+	.SDIN12 ( S12MOSI[1:8]),	
+	);
+
+endmodule

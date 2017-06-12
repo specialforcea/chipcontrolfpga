@@ -1,0 +1,412 @@
+module triggerupdate
+(
+
+CLOCK_50_B5B,
+
+readfromusb,
+sendtousb,
+
+data,
+
+trigger,
+address,
+WE,
+CE,
+OE,
+LB,
+UB,
+
+mgmt_readdata,
+mgmt_writedata,
+mgmt_read,
+mgmt_write,
+mgmt_address,
+nmbr,
+);
+
+
+input CLOCK_50_B5B;
+input trigger;
+inout [15:0]data;
+input readfromusb;
+
+output sendtousb;
+output [17:0] address;
+output WE;
+output CE;
+output OE;
+output LB;
+output UB;
+output [767:0]nmbr;
+output [31:0]mgmt_readdata;
+output [31:0]mgmt_writedata;
+output [5:0]mgmt_address;
+output mgmt_read;
+output mgmt_write;
+
+reg [17:0]address;
+initial address = 18'b000000000000000000;
+reg [4:0]state;
+reg [4:0]restate;
+
+reg [15:0]prestoreram;
+reg [15:0]datar;
+reg [31:0]N;
+reg [31:0]M;
+reg [31:0]C;
+reg [31:0]sft;
+reg WE;
+reg CE;
+reg OE;
+reg LB;
+reg UB;
+reg [767:0]nmbr;
+reg [31:0]mgmt_readdata;
+reg [31:0]mgmt_writedata;
+reg [5:0]mgmt_address;
+reg mgmt_read;
+reg mgmt_write;
+
+reg [12:0]clockdiv=13'b0000000000000;
+reg [5:0]cyclenum;
+
+wire readfromusb;
+reg sendtousb;
+wire trigger;
+wire CLOCK_50_B5B;
+reg query;
+
+//initial cyclenum <= 0;
+
+always @(posedge CLOCK_50_B5B)
+begin
+
+    if (clockdiv == 5208)
+	 begin
+	     clockdiv <= 0;
+		  end
+	 else begin
+	     clockdiv <= clockdiv + 1;
+		  end
+end
+
+
+wire refclk = (clockdiv == 0);
+
+//always @(posedge refclk)
+//begin
+//     if (trigger == 1)
+//	  cyclenum <= cyclenum + 1;
+//	  	  	  
+//end
+//	  
+//integer datagroupnum;
+
+
+always @(posedge CLOCK_50_B5B)
+begin
+   case (state)
+        5'b00000: if (refclk) state <= 5'b00001; // Start bit
+        5'b00001: if (refclk) state <= 5'b00010;    // Bit 0
+        5'b00010: if (refclk) state <= 5'b00011;    // Bit 1
+        5'b00011: if (refclk) state <= 5'b00100;    // Bit 2
+        5'b00100: if (refclk) state <= 5'b00101;    // Bit 3
+        5'b00101: if (refclk) state <= 5'b00110;    // Bit 4
+        5'b00110: if (refclk) state <= 5'b00111;    // Bit 5
+        5'b00111: if (refclk) state <= 5'b01000;    // Bit 6
+        5'b01000: if (refclk) state <= 5'b01001;    // Bit 7
+        5'b01001: if (refclk) state <= 5'b01010;    // Stop bit
+		  5'b01010: if (refclk) state <= 5'b01011;    //operation
+		  5'b01011: if (refclk) state <= 5'b01100;
+		  5'b01100: if (refclk) state <= 5'b01101;
+		  5'b01101: if (refclk) state <= 5'b01110;
+		  5'b01110: if (refclk) state <= 5'b01111;
+		  5'b01111: if (refclk) state <= 5'b10000;
+		  5'b10000: if (refclk) state <= 5'b10001;
+		  5'b10001: if (refclk) state <= 5'b10010;
+		  5'b10010: if (refclk) state <= 5'b10011;
+		  5'b10011: if (refclk) state <= 5'b10100;
+		  5'b10100: if (refclk) state <= 5'b10101;
+		  5'b10101: if (refclk) state <= 5'b10110;
+		  5'b10110: if (refclk) state <= 5'b00000;		  
+        default: state <= 5'b00000;                  
+    endcase
+end
+
+always @(posedge CLOCK_50_B5B)
+begin 
+
+case (state)
+         5'b00000:  sendtousb <= 1;                           // Start bit
+         5'b00001:  begin sendtousb <= 1;  datar[0] <= readfromusb;    end     // Bit 0
+         5'b00010:  begin sendtousb <= 1;  datar[1] <= readfromusb;    end    // Bit 1
+         5'b00011:  begin sendtousb <= 1;  datar[2] <= readfromusb;    end    // Bit 2
+         5'b00100:  begin sendtousb <= 1;  datar[3] <= readfromusb;    end    // Bit 3
+         5'b00101:  begin sendtousb <= 1;  datar[4] <= readfromusb;    end    // Bit 4
+         5'b00110:  begin sendtousb <= 1;  datar[5] <= readfromusb;    end    // Bit 5
+         5'b00111:  begin sendtousb <= 1;  datar[6] <= readfromusb;    end    // Bit 6
+         5'b01000:  begin sendtousb <= 1;  datar[7] <= readfromusb;    end    // Bit 7
+         5'b01001:  sendtousb <= 1;                             // Stop bit 
+         5'b01010:  begin 
+			                 sendtousb <= 1; 
+//		                	WE <= 0;
+//	                     CE <= 0;
+//								OE <= 1;
+//	                     LB <= 0;
+//	                     UB <= 1;
+						 end
+			5'b01011: begin 
+			               sendtousb <= 1;
+//			               WE <= 1;
+//	                     CE <= 0;
+//								OE <= 0;
+//	                     LB <= 0;
+//	                     UB <= 1;
+//								prestoreram[0] <= data[0];
+//								prestoreram[1] <= data[1];
+//								prestoreram[2] <= data[2];
+//								prestoreram[3] <= data[3];
+//								prestoreram[4] <= data[4];
+//								prestoreram[5] <= data[5];
+//								prestoreram[6] <= data[6];
+//								prestoreram[7] <= data[7];
+						 end
+			5'b01100:  sendtousb <= 0;
+		   5'b01101:  sendtousb <= datar[0];
+		   5'b01110:  sendtousb <= datar[1];
+		   5'b01111:  sendtousb <= datar[2];
+		   5'b10000:  sendtousb <= datar[3];
+		   5'b10001:  sendtousb <= datar[4];
+		   5'b10010:  sendtousb <= datar[5];
+		   5'b10011:  sendtousb <= datar[6];
+		   5'b10100:  sendtousb <= datar[7];
+		   5'b10101:  sendtousb <= 1; 
+			5'b10110:  begin sendtousb <= 1; address <= address + 1; end 
+         default: sendtousb <= 1;        
+    endcase
+
+//	 if (state == 0)begin
+//    for(datagroupnum = 0;datagroupnum < 101; datagroupnum = datagroupnum + 1 ) begin
+//	 WE <= 1;
+//	 CE <= 0;
+//	 OE <= 0;
+//	 LB <= 0;
+//	 UB <= 1;
+//	 address <= cyclenum * 101 + datagroupnum;
+//	 if (datagroupnum == 0) begin
+//	 N[0] <=data[0];
+//	 N[1] <=data[1];
+//	 N[2] <=data[2];
+//	 N[3] <=data[3];
+//	 N[4] <=data[4];
+//	 N[5] <=data[5];
+//	 N[6] <=data[6];
+//	 N[7] <=data[7];
+//	 N[8] <=data[0];
+//	 N[9] <=data[1];
+//	 N[10] <=data[2];
+//	 N[11] <=data[3];
+//	 N[12] <=data[4];
+//	 N[13] <=data[5];
+//	 N[14] <=data[6];
+//	 N[15] <=data[7];
+//	 end
+//	 if (datagroupnum == 1) begin
+//	 M[0] <=data[0];
+//	 M[1] <=data[1];
+//	 M[2] <=data[2];
+//	 M[3] <=data[3];
+//	 M[4] <=data[4];
+//	 M[5] <=data[5];
+//	 M[6] <=data[6];
+//	 M[7] <=data[7];
+//	 M[8] <=data[0];
+//	 M[9] <=data[1];
+//	 M[10] <=data[2];
+//	 M[11] <=data[3];
+//	 M[12] <=data[4];
+//	 M[13] <=data[5];
+//	 M[14] <=data[6];
+//	 M[15] <=data[7];
+//	 end
+//	 if (datagroupnum == 2) begin
+//	 C[0] <=data[0];
+//	 C[1] <=data[1];
+//	 C[2] <=data[2];
+//	 C[3] <=data[3];
+//	 C[4] <=data[4];
+//	 C[5] <=data[5];
+//	 C[6] <=data[6];
+//	 C[7] <=data[7];
+//	 C[8] <=data[0];
+//	 C[9] <=data[1];
+//	 C[10] <=data[2];
+//	 C[11] <=data[3];
+//	 C[12] <=data[4];
+//	 C[13] <=data[5];
+//	 C[14] <=data[6];
+//	 C[15] <=data[7];
+//	 end
+//	 if (datagroupnum == 3) begin
+//	 sft[0] <=data[0];
+//	 sft[1] <=data[1];
+//	 sft[2] <=data[2];
+//	 sft[3] <=data[3];
+//	 sft[4] <=data[4];
+//	 sft[5] <=data[5];
+//	 sft[6] <=data[6];
+//	 sft[7] <=data[7];
+//	 end
+//	 if (datagroupnum == 4) begin
+//	 sft[8] <=data[0];
+//	 sft[9] <=data[1];
+//	 sft[10] <=data[2];
+//	 sft[11] <=data[3];
+//	 sft[12] <=data[4];
+//	 sft[13] <=data[5];
+//	 sft[14] <=data[6];
+//	 sft[15] <=data[7];
+//	 end
+//	 if (datagroupnum > 4 ) begin
+//	 nmbr[(datagroupnum-5)*8+0] <= data[0];
+//	 nmbr[(datagroupnum-5)*8+1] <= data[1];
+//	 nmbr[(datagroupnum-5)*8+2] <= data[2];
+//	 nmbr[(datagroupnum-5)*8+3] <= data[3];
+//	 nmbr[(datagroupnum-5)*8+4] <= data[4];
+//	 nmbr[(datagroupnum-5)*8+5] <= data[5];
+//	 nmbr[(datagroupnum-5)*8+6] <= data[6];
+//	 nmbr[(datagroupnum-5)*8+7] <= data[7];
+//	 end
+//	 
+//end
+//
+//end
+//
+//
+//end
+//
+//always @(posedge CLOCK_50_B5B)
+//begin
+//   case (restate)
+//        5'b00000: if (refclk) restate <= 5'b00001; 
+//        5'b00001: if (refclk) restate <= 5'b00010;    
+//        5'b00010: if (refclk) restate <= 5'b00011;    
+//        5'b00011: if (refclk) restate <= 5'b00100;    
+//        5'b00100: if (refclk) restate <= 5'b00101;   
+//        5'b00101: if (refclk) restate <= 5'b00110;    
+//        5'b00110: if (refclk) restate <= 5'b00111;    
+//        5'b00111: if (refclk) restate <= 5'b01000;    
+//        5'b01000: if (refclk) restate <= 5'b01001;    
+//        5'b01001: if (refclk) restate <= 5'b01010;    
+//		  5'b01010: if (refclk) restate <= 5'b00000;
+//        default: restate <= 5'b00000;                  
+//    endcase
+//end
+//
+//
+//always @(posedge refclk)
+//begin	 
+//
+//    
+//	 case(restate)
+//	 5'b00000: begin
+//	          mgmt_write <= 1;
+//				 mgmt_writedata <= 32'b00000000000000000000000000000000;
+//				 mgmt_address <= 6'b000000;
+//				
+//				 end
+//	 5'b00001: begin
+//	          mgmt_address <= 6'b000011;
+//				 mgmt_writedata <= N;
+//				 mgmt_write <= 1;
+//				
+//				 end
+//	 5'b00010: begin
+//	          mgmt_address <= 6'b000100;
+//				 mgmt_writedata <= M;
+//				 mgmt_write <= 1;
+//				 
+//				 end
+//	 5'b00011: begin
+//	          mgmt_address <= 6'b000101;
+//				 mgmt_writedata <= C;
+//				 mgmt_write <= 1;
+//				
+//				 C[18] <= 1;
+//				 end
+//	 5'b00100: begin
+//	          mgmt_address <= 6'b000101;
+//				 mgmt_writedata <= C;
+//				 mgmt_write <= 1;
+//				 
+//				 C[18] <= 0;
+//				 C[19] <= 1;
+//				 end
+//	 5'b00101: begin
+//	          mgmt_address <= 6'b000101;
+//				 mgmt_writedata <= C;
+//				 mgmt_write <= 1;
+//				 
+//				 C[18] <= 1;
+//				 end
+//	 5'b00110: begin
+//	          mgmt_address <= 6'b000101;
+//				 mgmt_writedata <= C;
+//				 mgmt_write <= 1;
+//				
+//				 C[18] <= 0;				  
+//	          C[19] <= 0;
+//				 C[20] <= 1;
+//				 end
+//	 5'b00111: begin
+//	          mgmt_address <= 6'b000101;
+//				 mgmt_writedata <= C;
+//				 mgmt_write <= 1;
+//				 
+//				 C[18] <= 1;				  
+//	          C[19] <= 0;
+//				 C[20] <= 1;
+//				 end
+//	 5'b01000: begin
+//	          mgmt_address <= 6'b000101;
+//				 mgmt_writedata <= C;
+//				 mgmt_write <= 1;
+//				 
+//				 end
+//	 5'b01001: begin
+//	          mgmt_address <= 6'b000010;
+//				 mgmt_writedata <= 1;
+//				 mgmt_write <= 1;
+//				 
+//				 end
+//	 
+//	 endcase
+//	 
+end
+
+
+	 
+	   
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	endmodule	 

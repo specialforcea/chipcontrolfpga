@@ -1,0 +1,33 @@
+module Gen_CLK(
+CLOCK_50,
+RESET_N,
+REFCLK,
+SCLK
+);
+
+input CLOCK_50;
+input RESET_N;
+output REFCLK;
+output SCLK;
+
+wire SCLK;
+reg REFCLK;
+reg [11:0]count;
+
+always@( posedge CLOCK_50 or negedge RESET_N)begin	
+	if ( RESET_N == 1'b0)begin
+		REFCLK <= 1'b0;
+		count <= 12'b0;
+	end else begin
+	if (count == 12'd1000) begin
+		count <= 12'b0;
+		REFCLK <= ~REFCLK;
+	end else begin
+		count <= count + 1'b1;
+	end
+	end
+end
+
+assign SCLK = REFCLK;
+
+endmodule

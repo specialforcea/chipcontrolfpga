@@ -1,0 +1,163 @@
+module
+(
+CLOCK_50_B5B,
+
+readfromusb,
+sendtousb,
+
+address,
+WE,
+CE,
+OE,
+LB,
+UB,
+Data,
+
+);
+
+
+
+input CLOCK_50_B5B;
+
+input readfromusb;
+output sendtousb;
+
+output [17:0]address;
+output WE;
+output CE;
+output OE;
+output LB;
+output UB;
+inout [15:0]Data;
+
+reg [13:0]clockdiv;
+reg [15:0]prestoreram;
+
+
+always @(posedge ClOCK_50_B5B)
+begin
+
+    if (clockdiv == 5207)
+	 begin
+	     clockdiv <= 0;
+		  end
+	 else begin
+	     clockdiv <= clockdiv + 1;
+		  end
+end
+
+
+wire refclk = (clockdiv == 0);
+
+initial address <= 18'b000000000000000000;
+
+
+
+reg [4:0]state;
+
+always @(posedge CLOCK_50_B5B)
+begin
+   case (state)
+        5'b00000: if (readfromusb == 0) state <= 5'b00001; // Start bit
+        5'b00001: if (refclk) state <= 5'b00010;    // Bit 0
+        5'b00010: if (refclk) state <= 5'b00011;    // Bit 1
+        5'b00011: if (refclk) state <= 5'b00100;    // Bit 2
+        5'b00100: if (refclk) state <= 5'b00101;    // Bit 3
+        5'b00101: if (refclk) state <= 5'b00110;    // Bit 4
+        5'b00110: if (refclk) state <= 5'b00111;    // Bit 5
+        5'b00111: if (refclk) state <= 5'b01000;    // Bit 6
+        5'b01000: if (refclk) state <= 5'b01001;    // Bit 7
+        5'b01001: if (refclk) state <= 5'b01010;    // Stop bit
+		  5'b01010: if (refclk) state <= 5'b01011;    //operation
+		  5'b01011: if (refclk) state <= 5'b01100;
+		  5'b01100: if (refclk) state <= 5'b01101;
+		  5'b01101: if (refclk) state <= 5'b01110;
+		  5'b01110: if (refclk) state <= 5'b01111;
+		  5'b01111: if (refclk) state <= 5'b10000;
+		  5'b10000: if (refclk) state <= 5'b10001;
+		  5'b10001: if (refclk) state <= 5'b10010;
+		  5'b10010: if (refclk) state <= 5'b10011;
+		  5'b10011: if (refclk) state <= 5'b10100;
+		  5'b10100: if (refclk) state <= 5'b10101;
+		  5'b10101: if (refclk) state <= 5'b10110;
+		  5'b10110: if (refclk) state <= 5'b00000;		  
+        default: state <= 5'b00000;                  
+    endcase
+end
+
+
+
+always @(posedge CLOCK_50_B5B)
+begin
+    case (state)
+         5'b00000: ;                              // Start bit
+         5'b00001: data[0] <= readfromusb;        // Bit 0
+         5'b00010: data[1] <= readfromusb;        // Bit 1
+         5'b00011: data[2] <= readfromusb;        // Bit 2
+         5'b00100: data[3] <= readfromusb;        // Bit 3
+         5'b00101: data[4] <= readfromusb;        // Bit 4
+         5'b00110: data[5] <= readfromusb;        // Bit 5
+         5'b00111: data[6] <= readfromusb;        // Bit 6
+         5'b01000: data[7] <= readfromusb;        // Bit 7
+         5'b01001:     ;                          // Stop bit 
+         5'b01010: begin 
+		                	WE <= 0;
+	                     CE <= 0;
+								OE <= 1;
+	                     LB <= 0;
+	                     UB <= 1;
+						 end
+			5'b01011: begin 
+			               WE <= 1;
+	                     CE <= 0;
+								OE <= 0;
+	                     LB <= 0;
+	                     UB <= 1;
+								prestoreram[0] <= data[0];
+								prestoreram[1] <= data[1];
+								prestoreram[2] <= data[2];
+								prestoreram[3] <= data[3];
+								prestoreram[4] <= data[4];
+								prestoreram[5] <= data[5];
+								prestoreram[6] <= data[6];
+								prestoreram[7] <= data[7];
+						 end
+			5'b01100: sendtousb <= 0;
+		   5'b01101: sendtousb <= prestoreram[0];
+		   5'b01110: sendtousb <= prestoreram[1];
+		   5'b01111: sendtousb <= prestoreram[2];
+		   5'b10000: sendtousb <= prestoreram[3];
+		   5'b10001: sendtousb <= prestoreram[4];
+		   5'b10010: sendtousb <= prestoreram[5];
+		   5'b10011: sendtousb <= prestoreram[6];
+		   5'b10100: sendtousb <= prestoreram[7];
+		   5'b10101: sendtousb <= 1; 
+			5'b10110: address <= address + 1;
+         default: sendtousb <= 1;          
+    endcase
+end
+
+endmodule
+
+
+
+
+	 
+	     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	 

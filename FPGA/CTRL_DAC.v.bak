@@ -1,0 +1,362 @@
+module CTRL_DAC(
+	SCLK,
+	RESET_N,
+	ACTIVE_N,
+	SDIN1,
+	SDIN2,
+	SDIN3,
+	SDIN4,
+	SDIN5,
+	SDIN6,
+	SDIN7,
+	SDIN8,
+	SDIN9,
+	SDIN10,
+	SDIN11,
+	SDIN12,
+	SYNC,
+);
+
+input SCLK;
+input RESET_N;
+input ACTIVE_N;
+output [7:0]SDIN1;
+output [7:0]SDIN2;
+output [7:0]SDIN3;
+output [7:0]SDIN4;
+output [7:0]SDIN5;
+output [7:0]SDIN6;
+output [7:0]SDIN7;
+output [7:0]SDIN8;
+output [7:0]SDIN9;
+output [7:0]SDIN10;
+output [7:0]SDIN11;
+output [7:0]SDIN12;
+output SYNC;
+
+reg SYNC;
+reg [7:0]SDIN1;
+reg [7:0]SDIN2;
+reg [7:0]SDIN3;
+reg [7:0]SDIN4;
+reg [7:0]SDIN5;
+reg [7:0]SDIN6;
+reg [7:0]SDIN7;
+reg [7:0]SDIN8;
+reg [7:0]SDIN9;
+reg [7:0]SDIN10;
+reg [7:0]SDIN11;
+reg [7:0]SDIN12;
+reg [4:0]state;
+reg [7:0]nmbr[7:0];
+
+integer i;
+
+	always@(posedge SCLK) begin
+		if(ACTIVE_N ==1'b1) begin
+		
+		nmbr[7] <= 8'b00000000;
+		nmbr[6] <= 8'b00000000;	
+		nmbr[5] <= 8'b00000000;
+		nmbr[4] <= 8'b00001010;
+		nmbr[3] <= 8'b00000000;	
+		nmbr[2] <= 8'b00000000;
+		nmbr[1] <= 8'b00000000;	
+		nmbr[0] <= 8'b00000000;	
+
+		if( RESET_N == 1'b0)begin
+			state <= 5'b00000;
+			SDIN1  <= 3'b000;
+			SDIN2  <= 3'b000;
+			SDIN3  <= 3'b000;
+			SDIN4  <= 3'b000;
+			SDIN5  <= 3'b000;
+			SDIN6  <= 3'b000;
+			SDIN7  <= 3'b000;
+			SDIN8  <= 3'b000;
+			SDIN9  <= 3'b000;
+			SDIN10  <= 3'b000;
+			SDIN11  <= 3'b000;
+			SDIN12  <= 3'b000;
+			SYNC <= 1'b1;
+		end else begin
+			case( state)
+			5'b00000:begin // transfer start bit power down mode (PD1)
+				state <= 5'b00001;
+				SDIN1  <= 3'b000;
+				SDIN2  <= 3'b000;
+				SDIN3  <= 3'b000;
+				SDIN4  <= 3'b000;
+				SDIN5  <= 3'b000;
+				SDIN6  <= 3'b000;
+				SDIN7  <= 3'b000;
+				SDIN8  <= 3'b000;
+				SDIN9  <= 3'b000;
+				SDIN10  <= 3'b000;
+				SDIN11  <= 3'b000;
+				SDIN12  <= 3'b000;				
+				SYNC <= 1'b0;
+			end
+			5'b00001: begin // transfer start bit power down mode (PD0)
+				state <= 5'b00010;
+				SDIN1  <= 3'b000;
+				SDIN2  <= 3'b000;
+				SDIN3  <= 3'b000;
+				SDIN4  <= 3'b000;
+				SDIN5  <= 3'b000;
+				SDIN6  <= 3'b000;
+				SDIN7  <= 3'b000;
+				SDIN8  <= 3'b000;
+				SDIN9  <= 3'b000;
+				SDIN10  <= 3'b000;
+				SDIN11  <= 3'b000;
+				SDIN12  <= 3'b000;
+			end
+			5'b00010:begin
+				state <= 5'b00011;
+				for (i = 0;i < 8;i = i + 1) begin SDIN1[i] <= nmbr[i][0]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN2[i] <= nmbr[i][0]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN3[i] <= nmbr[i][0]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN4[i] <= nmbr[i][0]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN5[i] <= nmbr[i][0]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN6[i] <= nmbr[i][0]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN7[i] <= nmbr[i][0]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN8[i] <= nmbr[i][0]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN9[i] <= nmbr[i][0]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN10[i] <= nmbr[i][0]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN11[i] <= nmbr[i][0]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN12[i] <= nmbr[i][0]; end
+			end
+			5'b00011:begin
+				state <= 5'b00100;
+				for (i = 0;i < 8;i = i + 1) begin SDIN1[i] <= nmbr[i][1]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN2[i] <= nmbr[i][1]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN3[i] <= nmbr[i][1]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN4[i] <= nmbr[i][1]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN5[i] <= nmbr[i][1]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN6[i] <= nmbr[i][1]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN7[i] <= nmbr[i][1]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN8[i] <= nmbr[i][1]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN9[i] <= nmbr[i][1]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN10[i] <= nmbr[i][1]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN11[i] <= nmbr[i][1]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN12[i] <= nmbr[i][1]; end
+			end
+			5'b00100:begin // transfer start bit
+				state <= 5'b00101;
+				for (i = 0;i < 8;i = i + 1) begin SDIN1[i] <= nmbr[i][2]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN2[i] <= nmbr[i][2]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN3[i] <= nmbr[i][2]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN4[i] <= nmbr[i][2]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN5[i] <= nmbr[i][2]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN6[i] <= nmbr[i][2]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN7[i] <= nmbr[i][2]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN8[i] <= nmbr[i][2]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN9[i] <= nmbr[i][2]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN10[i] <= nmbr[i][2]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN11[i] <= nmbr[i][2]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN12[i] <= nmbr[i][2]; end
+				end
+			5'b00101:begin // transfer start bit
+				state <= 5'b00110;
+				for (i = 0;i < 8;i = i + 1) begin SDIN1[i] <= nmbr[i][3]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN2[i] <= nmbr[i][3]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN3[i] <= nmbr[i][3]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN4[i] <= nmbr[i][3]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN5[i] <= nmbr[i][3]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN6[i] <= nmbr[i][3]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN7[i] <= nmbr[i][3]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN8[i] <= nmbr[i][3]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN9[i] <= nmbr[i][3]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN10[i] <= nmbr[i][3]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN11[i] <= nmbr[i][3]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN12[i] <= nmbr[i][3]; end
+				end
+			5'b00110:begin // transfer start bit
+				state <= 5'b00111;
+				for (i = 0;i < 8;i = i + 1) begin SDIN1[i] <= nmbr[i][4]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN2[i] <= nmbr[i][4]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN3[i] <= nmbr[i][4]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN4[i] <= nmbr[i][4]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN5[i] <= nmbr[i][4]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN6[i] <= nmbr[i][4]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN7[i] <= nmbr[i][4]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN8[i] <= nmbr[i][4]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN9[i] <= nmbr[i][4]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN10[i] <= nmbr[i][4]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN11[i] <= nmbr[i][4]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN12[i] <= nmbr[i][4]; end
+			end
+			5'b00111:begin // transfer start bit
+				state <= 5'b01000;
+				for (i = 0;i < 8;i = i + 1) begin SDIN1[i] <= nmbr[i][5]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN2[i] <= nmbr[i][5]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN3[i] <= nmbr[i][5]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN4[i] <= nmbr[i][5]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN5[i] <= nmbr[i][5]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN6[i] <= nmbr[i][5]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN7[i] <= nmbr[i][5]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN8[i] <= nmbr[i][5]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN9[i] <= nmbr[i][5]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN10[i] <= nmbr[i][5]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN11[i] <= nmbr[i][5]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN12[i] <= nmbr[i][5]; end
+			end
+			5'b01000:begin // transfer start bit
+				state <= 5'b01001;
+				for (i = 0;i < 8;i = i + 1) begin SDIN1[i] <= nmbr[i][6]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN2[i] <= nmbr[i][6]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN3[i] <= nmbr[i][6]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN4[i] <= nmbr[i][6]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN5[i] <= nmbr[i][6]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN6[i] <= nmbr[i][6]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN7[i] <= nmbr[i][6]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN8[i] <= nmbr[i][6]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN9[i] <= nmbr[i][6]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN10[i] <= nmbr[i][6]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN11[i] <= nmbr[i][6]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN12[i] <= nmbr[i][6]; end
+				end
+			5'b01001:begin // transfer start bit
+				state <= 5'b01010;
+				for (i = 0;i < 8;i = i + 1) begin SDIN1[i] <= nmbr[i][0]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN2[i] <= nmbr[i][7]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN3[i] <= nmbr[i][7]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN4[i] <= nmbr[i][7]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN5[i] <= nmbr[i][7]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN6[i] <= nmbr[i][7]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN7[i] <= nmbr[i][7]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN8[i] <= nmbr[i][7]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN9[i] <= nmbr[i][7]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN10[i] <= nmbr[i][7]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN11[i] <= nmbr[i][7]; end
+				for (i = 0;i < 8;i = i + 1) begin SDIN12[i] <= nmbr[i][7]; end
+			end
+			5'b01010:begin
+				state <= 5'b01011;
+				SDIN1  <= 3'b000;
+				SDIN2  <= 3'b000;
+				SDIN3  <= 3'b000;
+				SDIN4  <= 3'b000;
+				SDIN5  <= 3'b000;
+				SDIN6  <= 3'b000;
+				SDIN7  <= 3'b000;
+				SDIN8  <= 3'b000;
+				SDIN9  <= 3'b000;
+				SDIN10  <= 3'b000;
+				SDIN11  <= 3'b000;
+				SDIN12  <= 3'b000;
+			end
+			5'b01011:begin
+				state <= 5'b01100;
+				SDIN1  <= 3'b000;
+				SDIN2  <= 3'b000;
+				SDIN3  <= 3'b000;
+				SDIN4  <= 3'b000;
+				SDIN5  <= 3'b000;
+				SDIN6  <= 3'b000;
+				SDIN7  <= 3'b000;
+				SDIN8  <= 3'b000;
+				SDIN9  <= 3'b000;
+				SDIN10  <= 3'b000;
+				SDIN11  <= 3'b000;
+				SDIN12  <= 3'b000;
+			end
+			5'b01100:begin
+				state <= 5'b01101;
+				SDIN1  <= 3'b000;
+				SDIN2  <= 3'b000;
+				SDIN3  <= 3'b000;
+				SDIN4  <= 3'b000;
+				SDIN5  <= 3'b000;
+				SDIN6  <= 3'b000;
+				SDIN7  <= 3'b000;
+				SDIN8  <= 3'b000;
+				SDIN9  <= 3'b000;
+				SDIN10  <= 3'b000;
+				SDIN11  <= 3'b000;
+				SDIN12  <= 3'b000;
+			end		
+			5'b01101:begin // transfer bit
+				state <= 5'b01110;
+				SDIN1  <= 3'b000;
+				SDIN2  <= 3'b000;
+				SDIN3  <= 3'b000;
+				SDIN4  <= 3'b000;
+				SDIN5  <= 3'b000;
+				SDIN6  <= 3'b000;
+				SDIN7  <= 3'b000;
+				SDIN8  <= 3'b000;
+				SDIN9  <= 3'b000;
+				SDIN10  <= 3'b000;
+				SDIN11  <= 3'b000;
+				SDIN12  <= 3'b000;
+			end
+			5'b01110:begin // transfer bit
+				state <= 5'b01111;
+				SDIN1  <= 3'b000;
+				SDIN2  <= 3'b000;
+				SDIN3  <= 3'b000;
+				SDIN4  <= 3'b000;
+				SDIN5  <= 3'b000;
+				SDIN6  <= 3'b000;
+				SDIN7  <= 3'b000;
+				SDIN8  <= 3'b000;
+				SDIN9  <= 3'b000;
+				SDIN10  <= 3'b000;
+				SDIN11  <= 3'b000;
+				SDIN12  <= 3'b000;
+			end
+			5'b01111:begin // transfer Bit
+				state <= 5'b10000;
+				SDIN1  <= 3'b000;
+				SDIN2  <= 3'b000;
+				SDIN3  <= 3'b000;
+				SDIN4  <= 3'b000;
+				SDIN5  <= 3'b000;
+				SDIN6  <= 3'b000;
+				SDIN7  <= 3'b000;
+				SDIN8  <= 3'b000;
+				SDIN9  <= 3'b000;
+				SDIN10  <= 3'b000;
+				SDIN11  <= 3'b000;
+				SDIN12  <= 3'b000;
+			end
+			5'b10000:begin
+				state <= 5'b00000;
+				SDIN1  <= 3'b000;
+				SDIN2  <= 3'b000;
+				SDIN3  <= 3'b000;
+				SDIN4  <= 3'b000;
+				SDIN5  <= 3'b000;
+				SDIN6  <= 3'b000;
+				SDIN7  <= 3'b000;
+				SDIN8  <= 3'b000;
+				SDIN9  <= 3'b000;
+				SDIN10  <= 3'b000;
+				SDIN11  <= 3'b000;
+				SDIN12  <= 3'b000;
+			SYNC <= 1'b1;
+			end
+			default:begin
+				state <= 5'b00000;
+				SDIN1  <= 3'b000;
+				SDIN2  <= 3'b000;
+				SDIN3  <= 3'b000;
+				SDIN4  <= 3'b000;
+				SDIN5  <= 3'b000;
+				SDIN6  <= 3'b000;
+				SDIN7  <= 3'b000;
+				SDIN8  <= 3'b000;
+				SDIN9  <= 3'b000;
+				SDIN10  <= 3'b000;
+				SDIN11  <= 3'b000;
+				SDIN12  <= 3'b000;
+				SYNC <= 1'b1;
+			end
+			endcase
+		end
+		end
+
+	end
+endmodule
