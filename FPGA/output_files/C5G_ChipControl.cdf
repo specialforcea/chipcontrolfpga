@@ -4,7 +4,7 @@ JedecChain;
 	DefaultMfr(6E);
 
 	P ActionCode(Cfg)
-		Device PartName(5CGXFC5C6F27) Path("C:/Experiments/FPGAcontrol/chipcontrolfpga/FPGA/output_files/") File("C5G_ChipControl.sof") MfrSpec(OpMask(1));
+		Device PartName(5CGXFC5C6F27) Path("C:/Experiments/FPGAcontrol/chipcontrolfpga/chipcontrolfpga/FPGA/output_files/") File("C5G_ChipControl.sof") MfrSpec(OpMask(1));
 
 ChainEnd;
 
