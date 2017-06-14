@@ -105,15 +105,28 @@ reg [6:0]clockdiv2 = 7'b0000000;
 reg addone = 0;
 reg addonew = 0;
 reg addoner = 0;
-reg writing = 0;
-reg correcting = 0;
-reg reading = 0;
 
+reg [3:0]status = 0;
+reg [7:0]receive = 0;
+reg [7:0]bytetocorrect = 0;
+reg [7:0]correctingbyte = 0;
+reg transferring = 0;
 
-//reg [29:0]keydiv=30'b00000000000000000000000000000;
+//status map: 0000:standby
+//            0001:receiving writing data number[1]
+//            0010:receiving writing data number[2]
+//				  0011:receiving writing data
+//				  0100:receiving reading data number[1]
+//            0101:receiving reading data number[2]
+//				  0110:reading data
+//				  0111:receiving correcting data number
+//				  1000:receiving correcting data address[1]
+//            1001:receiving correcting data address[2]
+//            1010:receiving correcting data
+
 wire readfromusb;
 reg sendtousb;
-//reg key;
+
 wire CLOCK_50_B5B;
 
 
@@ -143,31 +156,19 @@ end
 
 
 
-always @(posedge refclk)
-begin
-
-    if (clockdiv1 == 100 | readfromusb == 0)begin
-	     clockdiv1 <= 0;
-		  end
-	 else if (writing == 1) begin
-	     clockdiv1 <= clockdiv1 + 1;
-		  end
-end
-
-
-//always @(posedge CLOCK_50_B5B)
+//always @(posedge refclk)
 //begin
 //
-//    if (keydiv == 500000000)
-//	 begin
-//	     keydiv <= 0;
+//    if (clockdiv1 == 100 | readfromusb == 0)begin
+//	     clockdiv1 <= 0;
 //		  end
-//	 else begin
-//	     keydiv <= keydiv + 1;
+//	 else if (writing == 1) begin
+//	     clockdiv1 <= clockdiv1 + 1;
 //		  end
-//		  
-//	 key <= (keydiv == 0);
 //end
+
+
+
 
 wire refclk = (clockdiv == 0);
 //wire refclk1 = (clockdiv1 == 0);
@@ -190,7 +191,7 @@ begin
         6'b000111: if (refclk) state <= 6'b001000;                    // Bit 6
         6'b001000: if (refclk) state <= 6'b001001;                    // Bit 7
         6'b001001: if (refclk) state <= 6'b001010;                    // Stop bit
-		  6'b001010: if (refclk && readfromusb == 0) state <= 6'b001011;    //Start bit
+		  6'b001010: if (refclk) state <= 6'b001011;    //Start bit
 		  6'b001011: if (refclk) state <= 6'b001100;
 		  6'b001100: if (refclk) state <= 6'b001101;
 		  6'b001101: if (refclk) state <= 6'b001110;
@@ -200,7 +201,7 @@ begin
 		  6'b010001: if (refclk) state <= 6'b010010;
 		  6'b010010: if (refclk) state <= 6'b010011;
 		  6'b010011: if (refclk) state <= 6'b010100;
-		  6'b010100: if (refclk && readfromusb == 0) state <= 6'b010101;   //Start bit
+		  6'b010100: if (refclk) state <= 6'b000000;   //Start bit
 		  6'b010101: if (refclk) state <= 6'b010110;
 		  6'b010110: if (refclk) state <= 6'b010111;	
 		  6'b010111: if (refclk) state <= 6'b011000;   
@@ -235,8 +236,10 @@ end
 always @(posedge CLOCK_50_B5B)
 begin 
 
-if (show == 0 && up == 0) begin
-case (state)
+case(status)
+		4'b0000:begin //standby
+	case (state)
+	
          6'b000000:   begin sendtousb <= 1;
 	                                CE <= 1;								          
 	                                LB <= 1'bZ;
@@ -244,38 +247,38 @@ case (state)
 											  WE <= 1'bZ;
 											  OE <= 1'bZ; 
 									   end                         // Start bit
-         6'b000001:  begin sendtousb <= 1;  addresspre[0] <= readfromusb; CE <= 1;WE <= 1'bZ;
+         6'b000001:  begin sendtousb <= 1;  receive[0] <= readfromusb; CE <= 1;WE <= 1'bZ;
 											  OE <= 1'bZ;								          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ; 
-											  writing <= 0;
+											 // writing <= 0;
 											  
 								           end			  // Bit 0
-         6'b000010:  begin sendtousb <= 1;  addresspre[1] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+         6'b000010:  begin sendtousb <= 1;  receive[1] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end    // Bit 1
-         6'b000011:  begin sendtousb <= 1;  addresspre[2] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+         6'b000011:  begin sendtousb <= 1;  receive[2] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ; end    // Bit 2
-         6'b000100:  begin sendtousb <= 1;  addresspre[3] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+         6'b000100:  begin sendtousb <= 1;  receive[3] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end    // Bit 3
-         6'b000101:  begin sendtousb <= 1;  addresspre[4] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+         6'b000101:  begin sendtousb <= 1;  receive[4] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end    // Bit 4
-         6'b000110:  begin sendtousb <= 1;  addresspre[5] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+         6'b000110:  begin sendtousb <= 1;  receive[5] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ; end    // Bit 5
-         6'b000111:  begin sendtousb <= 1;  addresspre[6] <= readfromusb;  CE <= 1;	WE <= 1'bZ;
+         6'b000111:  begin sendtousb <= 1;  receive[6] <= readfromusb;  CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end    // Bit 6
-         6'b001000:  begin sendtousb <= 1;  addresspre[7] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+         6'b001000:  begin sendtousb <= 1;  receive[7] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  
@@ -284,182 +287,797 @@ case (state)
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;   end                         // Stop bit 
-											  
-			6'b001010:begin sendtousb <= 1;
-	                                CE <= 1;								          
+	
+
+			6'b001010:begin 	    CE <= 1;								          
+	                            WE <= 1'bZ;
+											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
-											  WE <= 1'bZ;
-											  OE <= 1'bZ; 
-									   end                         // Start bit								  
-			6'b001011:  begin sendtousb <= 1;  addresspre[8] <= readfromusb; CE <= 1;WE <= 1'bZ;
-											  OE <= 1'bZ;								          
+										 sendtousb <= 0;   end       // Start bit	
+		
+		
+			6'b001011:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
-	                                UB <= 1'bZ; 
+	                                UB <= 1'bZ;
 											  //writing <= 1; 
 								           end			  // Bit 0
-         6'b001100:  begin sendtousb <= 1;  addresspre[9] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+         6'b001100:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
-	                                UB <= 1'bZ;  end    // Bit 1
-         6'b001101:  begin sendtousb <= 1;  addresspre[10] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+	                                UB <= 1'bZ;   end// Bit 1
+         6'b001101:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
-	                                UB <= 1'bZ; end    // Bit 2
-         6'b001110:  begin sendtousb <= 1;  addresspre[11] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 2
+         6'b001110:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
-	                                UB <= 1'bZ;  end    // Bit 3
-         6'b001111:  begin sendtousb <= 1;  addresspre[12] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 3
+         6'b001111:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
-	                                UB <= 1'bZ;  end    // Bit 4
-         6'b010000:  begin sendtousb <= 1;  addresspre[13] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 4
+         6'b010000:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
-	                                UB <= 1'bZ; end    // Bit 5
-         6'b010001:  begin sendtousb <= 1;  addresspre[14] <= readfromusb;  CE <= 1;	WE <= 1'bZ;
+	                                UB <= 1'bZ;  end // Bit 5
+         6'b010001:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
-	                                UB <= 1'bZ;  end    // Bit 6
-         6'b010010:  begin sendtousb <= 1;  addresspre[15] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+	                                UB <= 1'bZ;   end // Bit 6
+         6'b010010:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
-	                                UB <= 1'bZ;  
-											   end    // Bit 7
-         6'b010011:  begin sendtousb <= 1;  CE <= 1;WE <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 7
+         6'b010011:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
-	                                UB <= 1'bZ;  
-											  addresspre[16] <= 0;
-											  addresspre[17] <= 0;
-											  end                         // Stop bit 		
-					
+	                                UB <= 1'bZ;   
+											  transferring <= 0; end// Stop bit 	
+			 6'b010100:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+										     if(transferring== 0)begin status <= receive[3:0]; transferring <= 1;end
+											end  
+											
+			 
+			
+	     default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end     		
 
-         6'b010100:   begin sendtousb <= 1;
+         
+       endcase
+		 end
+		4'b0001:begin //receiving writing data number[1]
+		case (state)
+	
+         6'b000000:   begin sendtousb <= 1;
 	                                CE <= 1;								          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
 											  WE <= 1'bZ;
 											  OE <= 1'bZ; 
 									   end                         // Start bit
-         6'b010101:  begin sendtousb <= 1;  datapre[0] <= readfromusb; CE <= 1;WE <= 1'bZ;
+         6'b000001:  begin sendtousb <= 1;  receive[0] <= readfromusb; CE <= 1;WE <= 1'bZ;
 											  OE <= 1'bZ;								          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ; 
-											 // writing <= 1; 
+											 // writing <= 0;
+											  
 								           end			  // Bit 0
-         6'b010110:  begin sendtousb <= 1;  datapre[1] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+         6'b000010:  begin sendtousb <= 1;  receive[1] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end    // Bit 1
-         6'b010111:  begin sendtousb <= 1;  datapre[2] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+         6'b000011:  begin sendtousb <= 1;  receive[2] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ; end    // Bit 2
-         6'b011000:  begin sendtousb <= 1;  datapre[3] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+         6'b000100:  begin sendtousb <= 1;  receive[3] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end    // Bit 3
-         6'b011001:  begin sendtousb <= 1;  datapre[4] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+         6'b000101:  begin sendtousb <= 1;  receive[4] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end    // Bit 4
-         6'b011010:  begin sendtousb <= 1;  datapre[5] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+         6'b000110:  begin sendtousb <= 1;  receive[5] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ; end    // Bit 5
-         6'b011011:  begin sendtousb <= 1;  datapre[6] <= readfromusb;  CE <= 1;	WE <= 1'bZ;
+         6'b000111:  begin sendtousb <= 1;  receive[6] <= readfromusb;  CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end    // Bit 6
-         6'b011100:  begin sendtousb <= 1;  datapre[7] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+         6'b001000:  begin sendtousb <= 1;  receive[7] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  
 											   end    // Bit 7
-         6'b011101:  begin sendtousb <= 1;  CE <= 1;WE <= 1'bZ;
+         6'b001001:  begin sendtousb <= 1;  CE <= 1;WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
-	                                UB <= 1'bZ;   end                         // Stop bit 					
-											  
-											  
-											  
-         6'b011110:  begin 
-			                 sendtousb <= 1; 
-		                	WE <= 0;
-	                     CE <= 0;
-								OE <= 1;
-	                     LB <= 0;
-	                     UB <= 1;
-								
-								address[0] <= addresspre[0];
-								address[1] <= addresspre[1];
-								address[2] <= addresspre[2];
-								address[3] <= addresspre[3];
-								address[4] <= addresspre[4];
-								address[5] <= addresspre[5];
-								address[6] <= addresspre[6];
-								address[7] <= addresspre[7];
-								address[8] <= addresspre[8];
-								address[9] <= addresspre[9];
-								address[10] <= addresspre[10];
-								address[11] <= addresspre[11];
-								address[12] <= addresspre[12];
-								address[13] <= addresspre[13];
-								address[14] <= addresspre[14];
-								address[15] <= addresspre[15];
-								address[16] <= addresspre[16];
-								address[17] <= addresspre[17];
-						 end
-			6'b011111:      begin sendtousb <= 1;
+	                                UB <= 1'bZ;   end                         // Stop bit 
+	
+
+			6'b001010:begin 	    CE <= 1;								          
+	                            WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+										 sendtousb <= 0;   end       // Start bit	
+		
+		
+			6'b001011:  begin sendtousb <= 0;
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
-											  //addonew <= 0;
-									   end
-								
+											  //writing <= 1; 
+								           end			  // Bit 0
+         6'b001100:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end// Bit 1
+         6'b001101:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 2
+         6'b001110:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 3
+         6'b001111:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 4
+         6'b010000:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end // Bit 5
+         6'b010001:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end // Bit 6
+         6'b010010:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 7
+         6'b010011:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   
+											  addressfinal[7:0] <= receive;
+											  transferring <= 0;
+											  end
+											   // Stop bit 	
+			 6'b010100:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+										     
+											  if(transferring== 0)begin status <= 4'b0010; transferring <= 1; end
+											end  
+			
+	     default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end     		
 
-//        
-			6'b100000:  begin sendtousb <= 1;
-//			                          if (addonew == 0) begin addresspre <= addresspre + 1;addonew <= 1;end
-//											  if (addresspre > addressfinal)begin  addressfinal <= addresspre; end
-											 addressfinal <= addresspre;
-											  CE <= 1;		WE <= 1'bZ;
+         
+       endcase
+		 end
+		4'b0010:begin //receiving writing data number[2]
+		 case (state)
+	
+         6'b000000:   begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+											  WE <= 1'bZ;
+											  OE <= 1'bZ; 
+									   end                         // Start bit
+         6'b000001:  begin sendtousb <= 1;  receive[0] <= readfromusb; CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+											 // writing <= 0;
+											  
+								           end			  // Bit 0
+         6'b000010:  begin sendtousb <= 1;  receive[1] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 1
+         6'b000011:  begin sendtousb <= 1;  receive[2] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 2
+         6'b000100:  begin sendtousb <= 1;  receive[3] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 3
+         6'b000101:  begin sendtousb <= 1;  receive[4] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 4
+         6'b000110:  begin sendtousb <= 1;  receive[5] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 5
+         6'b000111:  begin sendtousb <= 1;  receive[6] <= readfromusb;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 6
+         6'b001000:  begin sendtousb <= 1;  receive[7] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  
+											   end    // Bit 7
+         6'b001001:  begin sendtousb <= 1;  CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end                         // Stop bit 
+	
+
+			6'b001010:begin 	    CE <= 1;								          
+	                            WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
-											  writing <= 1; 
- 
-											  end 
-         default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
+										 sendtousb <= 0;   end       // Start bit	
+		
+		
+			6'b001011:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
-	                                UB <= 1'bZ; end     
-    endcase
-	 end
-	 
-//	 if(KEY[0] == 0) begin
-//	     show <= 1;
-//		  end
-//	 
+	                                UB <= 1'bZ;
+											  //writing <= 1; 
+								           end			  // Bit 0
+         6'b001100:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end// Bit 1
+         6'b001101:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 2
+         6'b001110:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 3
+         6'b001111:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 4
+         6'b010000:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end // Bit 5
+         6'b010001:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end // Bit 6
+         6'b010010:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 7
+         6'b010011:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  
+											 transferring <= 0;
+											addressfinal[15:8] <= receive; end
+											   // Stop bit 	
+			 6'b010100:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+										     
+											  if(transferring==0)begin status <= 4'b0011; transferring <= 1;end
+											  addresspre <= 0;
+											end  
+			
+	     default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end     		
 
-    
-    if(clockdiv1 == 100) begin writing <= 0; show <= 1;  end
+         
+       endcase
+		 end
+		4'b0011:begin //0011:receiving writing data
+		case (state)
+	
+         6'b000000:   begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+											  WE <= 1'bZ;
+											  OE <= 1'bZ; 
+									   end                         // Start bit
+         6'b000001:  begin sendtousb <= 1;  datapre[0] <= readfromusb; CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+											 // writing <= 0;
+											  
+								           end			  // Bit 0
+         6'b000010:  begin sendtousb <= 1;  datapre[1] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 1
+         6'b000011:  begin sendtousb <= 1;  datapre[2] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 2
+         6'b000100:  begin sendtousb <= 1;  datapre[3] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 3
+         6'b000101:  begin sendtousb <= 1;  datapre[4] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 4
+         6'b000110:  begin sendtousb <= 1;  datapre[5] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 5
+         6'b000111:  begin sendtousb <= 1;  datapre[6] <= readfromusb;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 6
+         6'b001000:  begin sendtousb <= 1;  datapre[7] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  
+											   end    // Bit 7
+         6'b001001:  begin sendtousb <= 1;  CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end                         // Stop bit 
+	
 
-    if (show == 1) begin
-	     case(readstate)
-		             5'b00000: begin 
+			6'b001010:begin 	    CE <= 0;								          
+	                            WE <= 0;
+											  OE <= 1;							          
+	                                LB <= 0;
+	                                UB <= 1;
+										 sendtousb <= 0; 
+									    address <= addresspre;	 end       // Start bit	
+		
+		
+			6'b001011:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+											  addonew <= 0;
+											  //writing <= 1; 
+								           end			  // Bit 0
+         6'b001100:  begin sendtousb <= 0;
+			                          if (addonew == 0) begin addresspre <= addresspre + 1;addonew <= 1;end
+											  
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end// Bit 1
+         6'b001101:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 2
+         6'b001110:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 3
+         6'b001111:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 4
+         6'b010000:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end // Bit 5
+         6'b010001:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end // Bit 6
+         6'b010010:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 7
+         6'b010011:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  
+											 transferring<= 0; end
+											   // Stop bit 	
+			 6'b010100:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+										     if (addresspre == addressfinal && transferring == 0)begin  status <= 0;  transferring <= 1;end
+											end  
+			
+	     default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end     		
+
+         
+       endcase
+		 end
+		4'b0100:begin //0100:receiving reading data number[1]
+		 
+		case (state)
+	
+         6'b000000:   begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+											  WE <= 1'bZ;
+											  OE <= 1'bZ; 
+									   end                         // Start bit
+         6'b000001:  begin sendtousb <= 1;  receive[0] <= readfromusb; CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+											 // writing <= 0;
+											  
+								           end			  // Bit 0
+         6'b000010:  begin sendtousb <= 1;  receive[1] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 1
+         6'b000011:  begin sendtousb <= 1;  receive[2] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 2
+         6'b000100:  begin sendtousb <= 1;  receive[3] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 3
+         6'b000101:  begin sendtousb <= 1;  receive[4] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 4
+         6'b000110:  begin sendtousb <= 1;  receive[5] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 5
+         6'b000111:  begin sendtousb <= 1;  receive[6] <= readfromusb;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 6
+         6'b001000:  begin sendtousb <= 1;  receive[7] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  
+											   end    // Bit 7
+         6'b001001:  begin sendtousb <= 1;  CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end                         // Stop bit 
+	
+
+			6'b001010:begin 	    CE <= 1;								          
+	                            WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+										 sendtousb <= 0;   end       // Start bit	
+		
+		
+			6'b001011:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+											  //writing <= 1; 
+								           end			  // Bit 0
+         6'b001100:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end// Bit 1
+         6'b001101:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 2
+         6'b001110:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 3
+         6'b001111:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 4
+         6'b010000:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end // Bit 5
+         6'b010001:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end // Bit 6
+         6'b010010:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 7
+         6'b010011:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+											transferring <= 0; 
+										addressfinal[7:0] <= receive;	end
+											   // Stop bit 	
+			 6'b010100:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+										     
+											  if(transferring==0)begin status <= 4'b101; transferring <= 1;end
+											end  
+			
+	     default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end     		
+
+         
+       endcase
+		 end
+		4'b0101:begin //0101:receiving reading data number[2]
+		 
+		case (state)
+	
+         6'b000000:   begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+											  WE <= 1'bZ;
+											  OE <= 1'bZ; 
+									   end                         // Start bit
+         6'b000001:  begin sendtousb <= 1;  receive[0] <= readfromusb; CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+											 // writing <= 0;
+											  
+								           end			  // Bit 0
+         6'b000010:  begin sendtousb <= 1;  receive[1] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 1
+         6'b000011:  begin sendtousb <= 1;  receive[2] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 2
+         6'b000100:  begin sendtousb <= 1;  receive[3] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 3
+         6'b000101:  begin sendtousb <= 1;  receive[4] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 4
+         6'b000110:  begin sendtousb <= 1;  receive[5] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 5
+         6'b000111:  begin sendtousb <= 1;  receive[6] <= readfromusb;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 6
+         6'b001000:  begin sendtousb <= 1;  receive[7] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  
+											   end    // Bit 7
+         6'b001001:  begin sendtousb <= 1;  CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end                         // Stop bit 
+	
+
+			6'b001010:begin 	    CE <= 1;								          
+	                            WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+										 sendtousb <= 0;   end       // Start bit	
+		
+		
+			6'b001011:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+											  //writing <= 1; 
+								           end			  // Bit 0
+         6'b001100:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end// Bit 1
+         6'b001101:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 2
+         6'b001110:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 3
+         6'b001111:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 4
+         6'b010000:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end // Bit 5
+         6'b010001:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end // Bit 6
+         6'b010010:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 7
+         6'b010011:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  
+											  addressfinal[15:8] <= receive;
+											  transferring<= 0;
+											  end
+											   // Stop bit 	
+			 6'b010100:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+										     
+											  if(transferring == 0)begin status <= 4'b0110; addresspre <= 0; show <= 1;end
+											end  
+			
+	     default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end     		
+
+         
+       endcase
+		 end
+		4'b0110:begin //0110:reading data
+		 
+		case (readstate)
+	
+         5'b00000:   begin 
 						                 sendtousb <= 1;
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
-									   end
-		             5'b00001: begin 
+									   end                       // Start bit
+         5'b00001:  begin 
 			               sendtousb <= 1;
 			               WE <= 1;
 	                     CE <= 0;
@@ -492,72 +1110,75 @@ case (state)
 								address[15] <= addresspre[15];
 								address[16] <= addresspre[16];
 								address[17] <= addresspre[17];
-						 end
-			5'b00010:  begin 	    CE <= 1;								          
-	                            WE <= 1'bZ;
+						   end			  
+         5'b00010:  begin 	     CE <= 1;								          
+	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
-										 sendtousb <= 0; 
-										 end
-		   5'b00011:   begin sendtousb <= prestoreram[0];
+										     sendtousb <= 0; 
+										 end    
+         5'b00011:  begin sendtousb <= prestoreram[0];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
-									   end
-		   5'b00100:  begin sendtousb <= prestoreram[1];
-	                                CE <= 1;								          
-	                               WE <= 1'bZ;
-											  OE <= 1'bZ;							          
-	                                LB <= 1'bZ;
-	                                UB <= 1'bZ;
-									   end
-		   5'b00101:  begin sendtousb <= prestoreram[2];
+									   end    
+         5'b00100:  begin sendtousb <= prestoreram[1];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
-									   end
-		   5'b00110:  begin sendtousb <= prestoreram[3];
+									   end    
+         5'b00101:  begin sendtousb <= prestoreram[2];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
-									   end
-		   5'b00111:  begin sendtousb <= prestoreram[4];
+									   end    
+         5'b00110:  begin sendtousb <= prestoreram[3];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
-									   end
-		   5'b01000:  begin sendtousb <= prestoreram[5];
-	                                CE <= 1;								          
-	                                WE <= 1'bZ;
-											  OE <= 1'bZ;							          
-	                                LB <= 1'bZ;
-	                                UB <= 1'bZ; 
-									   end
-		   5'b01001:  begin sendtousb <= prestoreram[6];
+									   end    
+         5'b00111:  begin sendtousb <= prestoreram[4];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
-									   end
-		   5'b01010:  begin sendtousb <= prestoreram[7];
+									   end    
+         5'b01000:  begin sendtousb <= prestoreram[5];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
-											 
-									   end
-		   5'b01011:   begin sendtousb <= 1;
+									   end   
+         5'b01001:  begin sendtousb <= prestoreram[6];
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+									   end                         
+	
+
+			5'b01010:  begin sendtousb <= prestoreram[7];
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+									   end       
+		
+		
+			5'b01011:  begin sendtousb <= 1;
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -566,35 +1187,616 @@ case (state)
 											  addoner <= 0;
 											  
 									   end
-			5'b01100:  begin sendtousb <= 1;
-											  
-											  
-			                          if (addoner == 0 ) begin
-			                                  addresspre <= addresspre + 1;
-														 addoner <= 1;
-														 end
-												if(addresspre == addressfinal)begin show <= 0; addresspre <= 0; end
+         5'b01100:  begin sendtousb <= 1;
+			                          if (addoner == 0 ) begin addresspre <= addresspre + 1;addoner <= 1;end
+												
 											  CE <= 1;		WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
-	                                UB <= 1'bZ; end 
-			5'b01101:  begin  sendtousb <= 1;  CE <= 1;	WE <= 1'bZ; correcting <= 0;
+	                                UB <= 1'bZ; end // Bit 1
+         
+         5'b10011:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
-	                                UB <= 1'bZ; end
-         default: begin sendtousb <= 1;   CE <= 1;	WE <= 1'bZ;
+	                                UB <= 1'bZ;  
+											  
+											  
+											  end
+											   // Stop bit 	
+			 5'b10100:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
-	                                UB <= 1'bZ;   end   
-    endcase
-	 end
-	 
-	 if(clockdiv1 == 100) begin
-	      addresspre <= 18'b000000000000000000;
-			cyclenum <= 0;
-			datagroupnum <= 0;
+	                                UB <= 1'bZ; 
+										     
+											  if(addresspre == addressfinal)begin status <= 4'b0000; addresspre <= 0; show <= 0;end
+											end  
+         
+	     default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end     		
+
+         
+       endcase
+		 end
+		4'b0111:begin //0111:receiving correcting data number
+		case (state)
+	
+         6'b000000:   begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+											  WE <= 1'bZ;
+											  OE <= 1'bZ; 
+									   end                         // Start bit
+         6'b000001:  begin sendtousb <= 1;  receive[0] <= readfromusb; CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+											 // writing <= 0;
+											  
+								           end			  // Bit 0
+         6'b000010:  begin sendtousb <= 1;  receive[1] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 1
+         6'b000011:  begin sendtousb <= 1;  receive[2] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 2
+         6'b000100:  begin sendtousb <= 1;  receive[3] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 3
+         6'b000101:  begin sendtousb <= 1;  receive[4] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 4
+         6'b000110:  begin sendtousb <= 1;  receive[5] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 5
+         6'b000111:  begin sendtousb <= 1;  receive[6] <= readfromusb;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 6
+         6'b001000:  begin sendtousb <= 1;  receive[7] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  
+											   end    // Bit 7
+         6'b001001:  begin sendtousb <= 1;  CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end                         // Stop bit 
+	
+
+			6'b001010:begin 	    CE <= 1;								          
+	                            WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+										 sendtousb <= 0;   end       // Start bit	
+		
+		
+			6'b001011:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+											  //writing <= 1; 
+								           end			  // Bit 0
+         6'b001100:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end// Bit 1
+         6'b001101:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 2
+         6'b001110:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 3
+         6'b001111:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 4
+         6'b010000:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end // Bit 5
+         6'b010001:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end // Bit 6
+         6'b010010:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 7
+         6'b010011:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  
+											 transferring <= 0; 
+											 bytetocorrect <= receive;end
+											   // Stop bit 	
+			 6'b010100:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+										     
+											  if(transferring == 0) begin status <= 4'b1000; transferring <= 1; end
+											end  
 			
-			end
+	     default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end     		
+
+         
+       endcase
+		 end
+		4'b1000:begin //1000:receiving correcting data address[1]
+		case (state)
+	
+         6'b000000:   begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+											  WE <= 1'bZ;
+											  OE <= 1'bZ; 
+									   end                         // Start bit
+         6'b000001:  begin sendtousb <= 1;  receive[0] <= readfromusb; CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+											 // writing <= 0;
+											  
+								           end			  // Bit 0
+         6'b000010:  begin sendtousb <= 1;  receive[1] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 1
+         6'b000011:  begin sendtousb <= 1;  receive[2] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 2
+         6'b000100:  begin sendtousb <= 1;  receive[3] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 3
+         6'b000101:  begin sendtousb <= 1;  receive[4] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 4
+         6'b000110:  begin sendtousb <= 1;  receive[5] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 5
+         6'b000111:  begin sendtousb <= 1;  receive[6] <= readfromusb;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 6
+         6'b001000:  begin sendtousb <= 1;  receive[7] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  
+											   end    // Bit 7
+         6'b001001:  begin sendtousb <= 1;  CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end                         // Stop bit 
+	
+
+			6'b001010:begin 	    CE <= 1;								          
+	                            WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+										 sendtousb <= 0;   end       // Start bit	
+		
+		
+			6'b001011:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+											  //writing <= 1; 
+								           end			  // Bit 0
+         6'b001100:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end// Bit 1
+         6'b001101:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 2
+         6'b001110:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 3
+         6'b001111:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 4
+         6'b010000:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end // Bit 5
+         6'b010001:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end // Bit 6
+         6'b010010:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 7
+         6'b010011:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   
+											  addresspre[7:0] <= receive;
+											  transferring <= 0;end
+											   // Stop bit 	
+			 6'b010100:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+										     
+											  if(transferring == 0) begin status <= 4'b1001; transferring <= 1; end
+											end  
+			
+	     default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end     		
+
+         
+       endcase
+		 end
+		 
+		4'b1001:begin //1001:receiving correcting data address[2]
+		case (state)
+	
+         6'b000000:   begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+											  WE <= 1'bZ;
+											  OE <= 1'bZ; 
+									   end                         // Start bit
+         6'b000001:  begin sendtousb <= 1;  receive[0] <= readfromusb; CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+											 // writing <= 0;
+											  
+								           end			  // Bit 0
+         6'b000010:  begin sendtousb <= 1;  receive[1] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 1
+         6'b000011:  begin sendtousb <= 1;  receive[2] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 2
+         6'b000100:  begin sendtousb <= 1;  receive[3] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 3
+         6'b000101:  begin sendtousb <= 1;  receive[4] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 4
+         6'b000110:  begin sendtousb <= 1;  receive[5] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 5
+         6'b000111:  begin sendtousb <= 1;  receive[6] <= readfromusb;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 6
+         6'b001000:  begin sendtousb <= 1;  receive[7] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  
+											   end    // Bit 7
+         6'b001001:  begin sendtousb <= 1;  CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end                         // Stop bit 
+	
+
+			6'b001010:begin 	    CE <= 1;								          
+	                            WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+										 sendtousb <= 0;   end       // Start bit	
+		
+		
+			6'b001011:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+											  //writing <= 1; 
+								           end			  // Bit 0
+         6'b001100:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end// Bit 1
+         6'b001101:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 2
+         6'b001110:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 3
+         6'b001111:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 4
+         6'b010000:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end // Bit 5
+         6'b010001:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end // Bit 6
+         6'b010010:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 7
+         6'b010011:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   
+											  addresspre[15:8] <= receive;
+											  transferring <= 0;end
+											   // Stop bit 	
+			 6'b010100:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+										     
+											  if(transferring == 0)begin status <= 4'b1010; transferring <= 1;end
+											end  
+			
+	     default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end     		
+
+         
+       endcase
+		 end
+		4'b1010:begin //1010:receiving correcting data
+		case (state)
+	
+         6'b000000:   begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+											  WE <= 1'bZ;
+											  OE <= 1'bZ; 
+									   end                         // Start bit
+         6'b000001:  begin sendtousb <= 1;  datapre[0] <= readfromusb; CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;								          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+											 // writing <= 0;
+											  
+								           end			  // Bit 0
+         6'b000010:  begin sendtousb <= 1;  datapre[1] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 1
+         6'b000011:  begin sendtousb <= 1;  datapre[2] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 2
+         6'b000100:  begin sendtousb <= 1;  datapre[3] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 3
+         6'b000101:  begin sendtousb <= 1;  datapre[4] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 4
+         6'b000110:  begin sendtousb <= 1;  datapre[5] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end    // Bit 5
+         6'b000111:  begin sendtousb <= 1;  datapre[6] <= readfromusb;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end    // Bit 6
+         6'b001000:  begin sendtousb <= 1;  datapre[7] <= readfromusb;   CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  
+											   end    // Bit 7
+         6'b001001:  begin sendtousb <= 1;  CE <= 1;WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end                         // Stop bit 
+	
+
+			6'b001010:begin 	    CE <= 0;								          
+	                            WE <= 0;
+											  OE <= 1;							          
+	                                LB <= 0;
+	                                UB <= 1;
+										 sendtousb <= 0; 
+									    address <= addresspre;	 end       // Start bit	
+		
+		
+			6'b001011:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;
+											  addonew <= 0;
+											  //writing <= 1; 
+								           end			  // Bit 0
+         6'b001100:  begin sendtousb <= 0;
+			                          if (addonew == 0) begin correctingbyte <= correctingbyte + 1;addonew <= 1;end
+											  
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end// Bit 1
+         6'b001101:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 2
+         6'b001110:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 3
+         6'b001111:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end  // Bit 4
+         6'b010000:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;  end // Bit 5
+         6'b010001:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   end // Bit 6
+         6'b010010:  begin sendtousb <= 0;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end  // Bit 7
+         6'b010011:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ;   
+											  transferring <= 0;end
+											   // Stop bit 	
+			 6'b010100:  begin sendtousb <= 1;
+	                                CE <= 1;								          
+	                                WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; 
+										     if (correctingbyte == bytetocorrect && transferring == 0)begin  status <= 0;  end
+											  if (correctingbyte < bytetocorrect && transferring == 0)begin status <= 4'b1000;end 
+											end  
+			
+	     default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
+											  OE <= 1'bZ;							          
+	                                LB <= 1'bZ;
+	                                UB <= 1'bZ; end     		
+
+         
+       endcase
+		 end
+		 
+		 
+	 endcase
+	 
+	 
+	
+	 
+	 
+//	 if(KEY[0] == 0) begin
+//	     show <= 1;
+//		  end
+//	 
+
+    
+    
+	 
+//	 if(clockdiv1 == 100) begin
+//	      addresspre <= 18'b000000000000000000;
+//			cyclenum <= 0;
+//			datagroupnum <= 0;
+			
+			
 	 
 	 if(KEY[2] == 0) begin
 	      auxup <= 1;
