@@ -111,6 +111,7 @@ reg [7:0]receive = 0;
 reg [7:0]bytetocorrect = 0;
 reg [7:0]correctingbyte = 0;
 reg transferring = 0;
+reg readingfinal = 0;
 
 //status map: 0000:standby
 //            0001:receiving writing data number[1]
@@ -297,7 +298,7 @@ case(status)
 										 sendtousb <= 0;   end       // Start bit	
 		
 		
-			6'b001011:  begin sendtousb <= 0;
+			6'b001011:  begin sendtousb <= status[0];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -305,19 +306,19 @@ case(status)
 	                                UB <= 1'bZ;
 											  //writing <= 1; 
 								           end			  // Bit 0
-         6'b001100:  begin sendtousb <= 0;
+         6'b001100:  begin sendtousb <= status[1];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;   end// Bit 1
-         6'b001101:  begin sendtousb <= 0;
+         6'b001101:  begin sendtousb <= status[2];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end  // Bit 2
-         6'b001110:  begin sendtousb <= 0;
+         6'b001110:  begin sendtousb <= status[3];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -433,7 +434,7 @@ case(status)
 										 sendtousb <= 0;   end       // Start bit	
 		
 		
-			6'b001011:  begin sendtousb <= 0;
+			6'b001011:  begin sendtousb <= status[0];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -441,19 +442,19 @@ case(status)
 	                                UB <= 1'bZ;
 											  //writing <= 1; 
 								           end			  // Bit 0
-         6'b001100:  begin sendtousb <= 0;
+         6'b001100:  begin sendtousb <= status[1];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;   end// Bit 1
-         6'b001101:  begin sendtousb <= 0;
+         6'b001101:  begin sendtousb <= status[2];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end  // Bit 2
-         6'b001110:  begin sendtousb <= 0;
+         6'b001110:  begin sendtousb <= status[3];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -571,7 +572,7 @@ case(status)
 										 sendtousb <= 0;   end       // Start bit	
 		
 		
-			6'b001011:  begin sendtousb <= 0;
+			6'b001011:  begin sendtousb <= status[0];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -579,19 +580,19 @@ case(status)
 	                                UB <= 1'bZ;
 											  //writing <= 1; 
 								           end			  // Bit 0
-         6'b001100:  begin sendtousb <= 0;
+         6'b001100:  begin sendtousb <= status[1];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;   end// Bit 1
-         6'b001101:  begin sendtousb <= 0;
+         6'b001101:  begin sendtousb <= status[2];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end  // Bit 2
-         6'b001110:  begin sendtousb <= 0;
+         6'b001110:  begin sendtousb <= status[3];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -710,7 +711,7 @@ case(status)
 									    address <= addresspre;	 end       // Start bit	
 		
 		
-			6'b001011:  begin sendtousb <= 0;
+			6'b001011:  begin sendtousb <= status[0];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -719,7 +720,7 @@ case(status)
 											  addonew <= 0;
 											  //writing <= 1; 
 								           end			  // Bit 0
-         6'b001100:  begin sendtousb <= 0;
+         6'b001100:  begin sendtousb <= status[1];
 			                          if (addonew == 0) begin addresspre <= addresspre + 1;addonew <= 1;end
 											  
 	                                CE <= 1;								          
@@ -727,13 +728,13 @@ case(status)
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;   end// Bit 1
-         6'b001101:  begin sendtousb <= 0;
+         6'b001101:  begin sendtousb <= status[2];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end  // Bit 2
-         6'b001110:  begin sendtousb <= 0;
+         6'b001110:  begin sendtousb <= status[3];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -849,7 +850,7 @@ case(status)
 										 sendtousb <= 0;   end       // Start bit	
 		
 		
-			6'b001011:  begin sendtousb <= 0;
+			6'b001011:  begin sendtousb <= status[0];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -857,19 +858,19 @@ case(status)
 	                                UB <= 1'bZ;
 											  //writing <= 1; 
 								           end			  // Bit 0
-         6'b001100:  begin sendtousb <= 0;
+         6'b001100:  begin sendtousb <= status[1];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;   end// Bit 1
-         6'b001101:  begin sendtousb <= 0;
+         6'b001101:  begin sendtousb <= status[2];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end  // Bit 2
-         6'b001110:  begin sendtousb <= 0;
+         6'b001110:  begin sendtousb <= status[3];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -984,10 +985,10 @@ case(status)
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
-										 sendtousb <= 0;   end       // Start bit	
+										 sendtousb <= 1;   end       // Start bit	
 		
 		
-			6'b001011:  begin sendtousb <= 0;
+			6'b001011:  begin sendtousb <= 1;
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -995,43 +996,43 @@ case(status)
 	                                UB <= 1'bZ;
 											  //writing <= 1; 
 								           end			  // Bit 0
-         6'b001100:  begin sendtousb <= 0;
+         6'b001100:  begin sendtousb <= 1;
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;   end// Bit 1
-         6'b001101:  begin sendtousb <= 0;
+         6'b001101:  begin sendtousb <= 1;
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end  // Bit 2
-         6'b001110:  begin sendtousb <= 0;
+         6'b001110:  begin sendtousb <= 1;
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ; end  // Bit 3
-         6'b001111:  begin sendtousb <= 0;
+         6'b001111:  begin sendtousb <= 1;
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end  // Bit 4
-         6'b010000:  begin sendtousb <= 0;
+         6'b010000:  begin sendtousb <= 1;
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end // Bit 5
-         6'b010001:  begin sendtousb <= 0;
+         6'b010001:  begin sendtousb <= 1;
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;   end // Bit 6
-         6'b010010:  begin sendtousb <= 0;
+         6'b010010:  begin sendtousb <= 1;
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1054,7 +1055,7 @@ case(status)
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ; 
 										     
-											  if(transferring == 0)begin status <= 4'b0110; addresspre <= 0; show <= 1;end
+											  if(transferring == 0)begin status <= 4'b0110; addresspre <= 0; show <= 1; end
 											end  
 			
 	     default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
@@ -1118,14 +1119,16 @@ case(status)
 	                                UB <= 1'bZ;
 										     sendtousb <= 0; 
 										 end    
-         5'b00011:  begin sendtousb <= prestoreram[0];
+         5'b00011:  begin  sendtousb <= prestoreram[0];
+			                
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
 									   end    
-         5'b00100:  begin sendtousb <= prestoreram[1];
+         5'b00100:  begin  sendtousb <= prestoreram[1];
+			                 
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1133,6 +1136,7 @@ case(status)
 	                                UB <= 1'bZ;
 									   end    
          5'b00101:  begin sendtousb <= prestoreram[2];
+			                
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1140,6 +1144,7 @@ case(status)
 	                                UB <= 1'bZ;
 									   end    
          5'b00110:  begin sendtousb <= prestoreram[3];
+			                 
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1147,20 +1152,23 @@ case(status)
 	                                UB <= 1'bZ;
 									   end    
          5'b00111:  begin sendtousb <= prestoreram[4];
+			                 
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
 									   end    
-         5'b01000:  begin sendtousb <= prestoreram[5];
+         5'b01000:  begin  sendtousb <= prestoreram[5];
+			                 
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;
 									   end   
-         5'b01001:  begin sendtousb <= prestoreram[6];
+         5'b01001:  begin  sendtousb <= prestoreram[6];
+			                
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1169,7 +1177,8 @@ case(status)
 									   end                         
 	
 
-			5'b01010:  begin sendtousb <= prestoreram[7];
+			5'b01010:  begin  sendtousb <= prestoreram[7];
+			                 
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1184,36 +1193,29 @@ case(status)
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ; 
-											  addoner <= 0;
+											  addoner <= 0;// Stop bit 	
 											  
 									   end
          5'b01100:  begin sendtousb <= 1;
 			                          if (addoner == 0 ) begin addresspre <= addresspre + 1;addoner <= 1;end
-												
+											  
 											  CE <= 1;		WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
-	                                UB <= 1'bZ; end // Bit 1
+	                                UB <= 1'bZ; end 
          
-         5'b10011:  begin sendtousb <= 1;
+         5'b01101:  begin sendtousb <= 1;
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  
+											  if(addresspre == addressfinal)begin status <= 4'b0000; addresspre <= 0; show <= 0; transferring <= 1;end
 											  
 											  
 											  end
-											   // Stop bit 	
-			 5'b10100:  begin sendtousb <= 1;
-	                                CE <= 1;								          
-	                                WE <= 1'bZ;
-											  OE <= 1'bZ;							          
-	                                LB <= 1'bZ;
-	                                UB <= 1'bZ; 
-										     
-											  if(addresspre == addressfinal)begin status <= 4'b0000; addresspre <= 0; show <= 0;end
-											end  
+											   
+			
          
 	     default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1283,7 +1285,7 @@ case(status)
 										 sendtousb <= 0;   end       // Start bit	
 		
 		
-			6'b001011:  begin sendtousb <= 0;
+			6'b001011:  begin sendtousb <= status[0];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1291,19 +1293,19 @@ case(status)
 	                                UB <= 1'bZ;
 											  //writing <= 1; 
 								           end			  // Bit 0
-         6'b001100:  begin sendtousb <= 0;
+         6'b001100:  begin sendtousb <= status[1];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;   end// Bit 1
-         6'b001101:  begin sendtousb <= 0;
+         6'b001101:  begin sendtousb <= status[2];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end  // Bit 2
-         6'b001110:  begin sendtousb <= 0;
+         6'b001110:  begin sendtousb <= status[3];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1340,7 +1342,8 @@ case(status)
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  
 											 transferring <= 0; 
-											 bytetocorrect <= receive;end
+											 bytetocorrect <= receive;
+											 correctingbyte <= 0;end
 											   // Stop bit 	
 			 6'b010100:  begin sendtousb <= 1;
 	                                CE <= 1;								          
@@ -1420,7 +1423,7 @@ case(status)
 										 sendtousb <= 0;   end       // Start bit	
 		
 		
-			6'b001011:  begin sendtousb <= 0;
+			6'b001011:  begin sendtousb <= status[0];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1428,19 +1431,19 @@ case(status)
 	                                UB <= 1'bZ;
 											  //writing <= 1; 
 								           end			  // Bit 0
-         6'b001100:  begin sendtousb <= 0;
+         6'b001100:  begin sendtousb <= status[1];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;   end// Bit 1
-         6'b001101:  begin sendtousb <= 0;
+         6'b001101:  begin sendtousb <= status[2];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end  // Bit 2
-         6'b001110:  begin sendtousb <= 0;
+         6'b001110:  begin sendtousb <= status[3];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1558,7 +1561,7 @@ case(status)
 										 sendtousb <= 0;   end       // Start bit	
 		
 		
-			6'b001011:  begin sendtousb <= 0;
+			6'b001011:  begin sendtousb <= status[0];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1566,19 +1569,19 @@ case(status)
 	                                UB <= 1'bZ;
 											  //writing <= 1; 
 								           end			  // Bit 0
-         6'b001100:  begin sendtousb <= 0;
+         6'b001100:  begin sendtousb <= status[1];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;   end// Bit 1
-         6'b001101:  begin sendtousb <= 0;
+         6'b001101:  begin sendtousb <= status[2];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end  // Bit 2
-         6'b001110:  begin sendtousb <= 0;
+         6'b001110:  begin sendtousb <= status[3];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1696,7 +1699,7 @@ case(status)
 									    address <= addresspre;	 end       // Start bit	
 		
 		
-			6'b001011:  begin sendtousb <= 0;
+			6'b001011:  begin sendtousb <= status[0];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1705,7 +1708,7 @@ case(status)
 											  addonew <= 0;
 											  //writing <= 1; 
 								           end			  // Bit 0
-         6'b001100:  begin sendtousb <= 0;
+         6'b001100:  begin sendtousb <= status[1];
 			                          if (addonew == 0) begin correctingbyte <= correctingbyte + 1;addonew <= 1;end
 											  
 	                                CE <= 1;								          
@@ -1713,13 +1716,13 @@ case(status)
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;   end// Bit 1
-         6'b001101:  begin sendtousb <= 0;
+         6'b001101:  begin sendtousb <= status[2];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  end  // Bit 2
-         6'b001110:  begin sendtousb <= 0;
+         6'b001110:  begin sendtousb <= status[3];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1763,8 +1766,8 @@ case(status)
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ; 
-										     if (correctingbyte == bytetocorrect && transferring == 0)begin  status <= 0;  end
-											  if (correctingbyte < bytetocorrect && transferring == 0)begin status <= 4'b1000;end 
+										     if (correctingbyte == bytetocorrect && transferring == 0)begin  status <= 0; transferring <= 1; end
+											  if (correctingbyte < bytetocorrect && transferring == 0)begin status <= 4'b1000;transferring <= 1;end 
 											end  
 			
 	     default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
