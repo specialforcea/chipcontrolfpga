@@ -342,7 +342,7 @@ case(status)
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;   end // Bit 6
-         6'b010010:  begin sendtousb <= 0;
+         6'b010010:  begin sendtousb <= receive[7];
 	                                CE <= 1;								          
 	                                WE <= 1'bZ;
 											  OE <= 1'bZ;							          
@@ -1778,6 +1778,7 @@ case(status)
          
        endcase
 		 end
+		 default:status <= 0;
 		 
 		 
 	 endcase
