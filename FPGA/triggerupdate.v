@@ -778,7 +778,7 @@ case(status)
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ; 
-										     if (addresspre == addressfinal && transferring == 0)begin  status <= 0;  transferring <= 1;end
+										     if (addresspre == addressfinal && transferring == 0)begin  status <= 0;  transferring <= 1; cyclenum <= 0;datagroupnum <= 0;end
 											end  
 			
 	     default: begin sendtousb <= 1;  CE <= 1;	WE <= 1'bZ;
@@ -1210,7 +1210,7 @@ case(status)
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ;  
-											  if(addresspre == addressfinal)begin status <= 4'b0000; addresspre <= 0; show <= 0; transferring <= 1;end
+											  if(addresspre == addressfinal)begin status <= 4'b0000; addresspre <= 0; show <= 0; transferring <= 1;cyclenum <= 0;datagroupnum <= 0;end
 											  
 											  
 											  end
@@ -1766,7 +1766,7 @@ case(status)
 											  OE <= 1'bZ;							          
 	                                LB <= 1'bZ;
 	                                UB <= 1'bZ; 
-										     if (correctingbyte == bytetocorrect && transferring == 0)begin  status <= 0; transferring <= 1; end
+										     if (correctingbyte == bytetocorrect && transferring == 0)begin  status <= 0; transferring <= 1; cyclenum <= 0;datagroupnum <= 0;end
 											  if (correctingbyte < bytetocorrect && transferring == 0)begin status <= 4'b1000;transferring <= 1;end 
 											end  
 			
