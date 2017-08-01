@@ -27,6 +27,12 @@ mgmt_read,
 mgmt_write,
 mgmt_address,
 nmbr,
+
+
+//phase_done,
+//phase_en,
+//cntsel,
+//updn,
 );
 
 
@@ -38,6 +44,11 @@ input [3:0]KEY;
 input mgmt_waitrequest;
 input locked;
 
+//input phase_done;
+//
+//output phase_en;
+//output [4:0]cntsel;
+//output updn;
 output sendtousb;
 output [17:0]address;
 output WE;
@@ -53,6 +64,10 @@ output mgmt_read;
 output mgmt_write;
 output [9:0]LEDR;
 
+
+reg phase_en;
+reg [4:0]cntsel;
+reg updn;
 reg [17:0]address;
 reg [17:0]addresspre;
 initial addresspre = 18'b000000000000000000;
@@ -60,7 +75,8 @@ reg [17:0]addressfinal;
 initial addressfinal = 18'b000000000000000000;
 reg [5:0]state;
 reg [4:0]readstate;
-reg [5:0]reconstate = 6'b100000;
+reg [5:0]reconstate = 6'b100110;
+reg [5:0]preconstate = 6'b100110;
 reg [2:0]upstate;
 reg reconfig = 0;
 reg [9:0]LEDR = 0;
@@ -96,8 +112,11 @@ reg [5:0]mgmt_address;
 reg mgmt_read = 0;
 reg mgmt_write = 0;
 reg up = 0;
+reg phup = 0;
 reg show = 0;
 reg auxup = 0;
+reg auxphup = 0;
+reg auxrecon = 0;
 reg [12:0]clockdiv=13'b0000000000000;
 reg [6:0]clockdiv1 = 7'b0000000;
 reg [6:0]clockdiv2 = 7'b0000000;
@@ -175,7 +194,29 @@ wire refclk = (clockdiv == 0);
 //wire refclk1 = (clockdiv1 == 0);
 
 
-	  
+//always @(posedge CLOCK_50_B5B)
+//begin
+//updn <= 1;
+//cntsel <= 5'b00100;
+//
+//
+//if(KEY[0] == 0) begin
+//	      auxphup <= 1;
+//			end
+//			
+//if (auxphup == 1 && KEY[0] == 1) begin
+//	     phup <= 1;
+//		  auxphup <= 0;
+//		  end
+//		  
+//		  
+//		  
+//if (phup == 1)begin phase_en <= 1;end
+//if(phase_done == 0)begin phase_en <= 0; phup <= 0;end
+//
+//end
+
+
 
 
 
@@ -1811,6 +1852,28 @@ case(status)
 		  auxup <= 0;
 		  end
 
+		  
+		  if(KEY[0] == 0) begin
+	      auxphup <= 1;
+			end
+			
+
+			if (auxphup == 1 && KEY[0] == 1) begin
+	     phup <= 1;
+		  auxphup <= 0;
+		  end
+		  
+	 
+	 
+	 if(KEY[1] == 0) begin
+	      auxrecon <= 1;
+			end
+			
+	 if (auxrecon == 1 && KEY[1] == 1) begin
+	     reconfig <= 1;
+		  auxrecon <= 0;
+		  end
+		  
 	 if (up == 1)begin
 	 case (upstate)
 	 
@@ -1909,6 +1972,7 @@ case(status)
 	 C0[16] <= 0;
 	 C0[17] <= 0;
 	 C0[22:18] <= 5'b00000;
+	 C0[31:23] <= 9'b000000000;
 	 end
 	 if (datagroupnum == 3) begin
 	 C1[0] <=data[0];
@@ -2031,7 +2095,7 @@ case(status)
 	 sft0[7] <=data[7];
 	 sft0[15:8] <= 8'b00000000;
 	 sft0[20:16] <= 5'b00000;
-	 sft0[21] <= 1;
+	 sft0[21] <= 0;
 	 sft0[31:22] <= 10'b0000000000;
 	 end
 	 if (datagroupnum == 9) begin
@@ -2045,7 +2109,7 @@ case(status)
 	 sft1[7] <=data[7];
 	 sft1[15:8] <= 8'b00000000;
 	 sft1[20:16] <= 5'b00001;
-	 sft1[21] <= 1;
+	 sft1[21] <= 0;
 	 sft1[31:22] <= 10'b0000000000;
 	 end
 	 if (datagroupnum == 10) begin
@@ -2059,7 +2123,7 @@ case(status)
 	 sft2[7] <=data[7];
 	 sft2[15:8] <= 8'b00000000;
 	 sft2[20:16] <= 5'b00010;
-	 sft2[21] <= 1;
+	 sft2[21] <= 0;
 	 sft2[31:22] <= 10'b0000000000;
 	 end
 	 if (datagroupnum == 11) begin
@@ -2073,7 +2137,7 @@ case(status)
 	 sft3[7] <=data[7];
 	 sft3[15:8] <= 8'b00000000;
 	 sft3[20:16] <= 5'b00011;
-	 sft3[21] <= 1;
+	 sft3[21] <= 0;
 	 sft3[31:22] <= 10'b0000000000;
 	 end
 	 if (datagroupnum == 12) begin
@@ -2087,7 +2151,7 @@ case(status)
 	 sft4[7] <=data[7];
 	 sft4[15:8] <= 8'b00000000;
 	 sft4[20:16] <= 5'b00100;
-	 sft4[21] <= 1;
+	 sft4[21] <= 0;
 	 sft4[31:22] <= 10'b0000000000;
 	 end
 	 if (datagroupnum == 13) begin
@@ -2101,9 +2165,9 @@ case(status)
 	 sft5[7] <=data[7];
 	 sft5[15:8] <= 8'b00000000;
 	 sft5[20:16] <= 5'b00101;
-	 sft5[21] <= 1;
+	 sft5[21] <= 0;
 	 sft5[31:22] <= 10'b0000000000;
-	 reconfig <= 1;
+	 //reconfig <= 1;
 	 end
 	 if (datagroupnum > 13 ) begin
 	 nmbr[(datagroupnum-14)*8+0] <= data[0];
@@ -2151,13 +2215,14 @@ case(status)
 		endcase
 end
 
-   
+if (mgmt_readdata[0] == 1) LEDR[5] <= 1;  
 LEDR[4] <= reconfig;
 LEDR[3] <= ~locked;
-LEDR[2] <= mgmt_waitrequest;
+LEDR[7] <= mgmt_waitrequest;
+LEDR[6] <= phup;
 if (reconfig == 1) begin
 case(reconstate)
-    6'b100000: begin
+    6'b100110: begin
 //	          mgmt_write <= 1;
 //				 mgmt_writedata <= 32'b00000000000000000000000000000001;
 //				 mgmt_address <= 6'b000000;
@@ -2225,6 +2290,7 @@ case(reconstate)
 //				 mgmt_address <= 6'b000001;
 				 mgmt_read <= 0;
 				 end
+	 
 	 6'b001000: begin
              mgmt_address <= 6'b000101;
 				 mgmt_writedata <= C1;
@@ -2289,8 +2355,8 @@ case(reconstate)
 				
 				 end
 	 6'b010010: begin
-	          mgmt_address <= 6'b000110;
-				 mgmt_writedata <= sft0;
+	          mgmt_address <= 6'b000010;
+				 mgmt_writedata <= 1;
 				 mgmt_write <= 1;
 				 mgmt_read <= 0;
 				 
@@ -2300,87 +2366,255 @@ case(reconstate)
 //				 LEDR[1] <= mgmt_readdata[0]; 
 //				 mgmt_address <= 6'b000001;
 				 mgmt_read <= 0;
+				 reconfig <= 0;
 				 end
-	 6'b010100: begin
+//	 6'b010100: begin
+//	          mgmt_write <= 1;
+//				 mgmt_writedata <= 0;
+//				 mgmt_address <= 6'b000000;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b010101: begin
+//	          mgmt_write <= 0;
+////				 LEDR[1] <= mgmt_readdata[0]; 
+////				 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b010110: begin
+//	          mgmt_address <= 6'b000110;
+//				 mgmt_writedata <= sft0;
+//				 mgmt_write <= 1;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b010111: begin
+//	          mgmt_write <= 0;
+////				 LEDR[1] <= mgmt_readdata[0]; 
+////				 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b011000: begin
+//	          mgmt_address <= 6'b000110;
+//				 mgmt_writedata <= sft1;
+//				 mgmt_write <= 1;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b011001: begin
+//	          mgmt_write <= 0;
+////				 LEDR[1] <= mgmt_readdata[0]; 
+////				 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 0;
+//				 end
+//    6'b011010: begin
+//	          mgmt_address <= 6'b000110;
+//				 mgmt_writedata <= sft2;
+//				 mgmt_write <= 1;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b011011: begin
+//	          mgmt_write <= 0;
+////				 LEDR[1] <= mgmt_readdata[0]; 
+////				 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b011100: begin
+//	          mgmt_address <= 6'b000110;
+//				 mgmt_writedata <= sft3;
+//				 mgmt_write <= 1;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b011101: begin
+//	          mgmt_write <= 0;
+////				 LEDR[1] <= mgmt_readdata[0]; 
+////				 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b011110: begin
+//	          mgmt_address <= 6'b000110;
+//				 mgmt_writedata <= sft4;
+//				 mgmt_write <= 1;
+//				 mgmt_read <= 0;
+//				 
+//				 end		 
+//	 6'b011111: begin
+//	          mgmt_write <= 0;
+//				 //reconfig <= 0;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b100000: begin
+//	          mgmt_address <= 6'b000110;
+//				 mgmt_writedata <= sft5;
+//				 mgmt_write <= 1;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b100001: begin
+//	          mgmt_write <= 0;
+//				 //reconfig <= 0;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b100010: begin
+//	          mgmt_address <= 6'b000010;
+//				 mgmt_writedata <= 1;
+//				 mgmt_write <= 1;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b100011: begin
+//	          mgmt_write <= 0;
+//				 //reconfig <= 0;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b100100: begin
+//	          mgmt_write <= 0;
+//				 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 1;
+//				 end
+//	 6'b100101: begin
+//	          mgmt_write <= 0;
+//				 reconfig <= 0;
+//				 //mgmt_address <= 6'b000001;
+//				 mgmt_read <= 0;
+//				 end
+	 default: begin 
+	          reconfig <= 0;
+	          mgmt_write <= 0; 
+				 mgmt_read <= 0;
+				 end 
+	 
+	 endcase
+	 end
+	 
+	 
+if (phup == 1) begin
+case(preconstate)
+    6'b100110: begin
+//	          mgmt_write <= 1;
+//				 mgmt_writedata <= 32'b00000000000000000000000000000001;
+//				 mgmt_address <= 6'b000000;
+//				 mgmt_read <= 0;
+	          mgmt_write <= 0;
+//				 LEDR[1] <= mgmt_readdata[0]; 
+//				 mgmt_address <= 6'b000001;
+				 mgmt_read <= 0;
+				 end
+	 6'b000000: begin
+//	          mgmt_write <= 0;
+//				 LEDR[1] <= mgmt_readdata[31]; 
+//				 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 1;
+	          mgmt_write <= 1;
+				 mgmt_writedata <= 0;
+				 mgmt_address <= 6'b000000;
+				 mgmt_read <= 0;
+//				
+				 end
+	 6'b000001: begin
+	          mgmt_write <= 0;
+//				 LEDR[1] <= mgmt_readdata[0]; 
+//				 mgmt_address <= 6'b000001;
+				 mgmt_read <= 0;
+				
+				 end
+	 6'b000010: begin
+             mgmt_address <= 6'b000110;
+				 mgmt_writedata <= sft0;
+				 mgmt_write <= 1;
+				 mgmt_read <= 0;
+	          
+//				 
+				 end
+	 6'b000011: begin
+	          mgmt_write <= 0;
+//			    LEDR[1] <= mgmt_readdata[0]; 
+//				 mgmt_address <= 6'b000001;
+				 mgmt_read <= 0;
+				 end
+	 6'b000100: begin	          
 	          mgmt_address <= 6'b000110;
 				 mgmt_writedata <= sft1;
 				 mgmt_write <= 1;
 				 mgmt_read <= 0;
 				 end
-	 6'b010101: begin
-	          mgmt_write <= 0;
+	 6'b000101: begin
+	           mgmt_write <= 0;
 //				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
+// 			 mgmt_address <= 6'b000001;
 				 mgmt_read <= 0;
+				 
 				 end
-	 6'b010110: begin
+	 6'b000110: begin
 	          mgmt_address <= 6'b000110;
 				 mgmt_writedata <= sft2;
 				 mgmt_write <= 1;
 				 mgmt_read <= 0;
+	          
 				 end
-	 6'b010111: begin
+	 6'b000111: begin
 	          mgmt_write <= 0;
 //				 LEDR[1] <= mgmt_readdata[0]; 
 //				 mgmt_address <= 6'b000001;
 				 mgmt_read <= 0;
 				 end
-	 6'b011000: begin
-	          mgmt_address <= 6'b000110;
+	 
+	 6'b001000: begin
+             mgmt_address <= 6'b000110;
 				 mgmt_writedata <= sft3;
 				 mgmt_write <= 1;
 				 mgmt_read <= 0;
 				 end
-	 6'b011001: begin
-	          mgmt_write <= 0;
+	 6'b001001: begin
+	         mgmt_write <= 0;
 //				 LEDR[1] <= mgmt_readdata[0]; 
 //				 mgmt_address <= 6'b000001;
 				 mgmt_read <= 0;
+				 
 				 end
-    6'b011010: begin
+    6'b001010: begin
 	          mgmt_address <= 6'b000110;
 				 mgmt_writedata <= sft4;
 				 mgmt_write <= 1;
 				 mgmt_read <= 0;
 				 end
-	 6'b011011: begin
+	 6'b001011: begin
 	          mgmt_write <= 0;
 //				 LEDR[1] <= mgmt_readdata[0]; 
 //				 mgmt_address <= 6'b000001;
 				 mgmt_read <= 0;
 				 end
-	 6'b011100: begin
+	 6'b001100: begin
 	          mgmt_address <= 6'b000110;
 				 mgmt_writedata <= sft5;
 				 mgmt_write <= 1;
 				 mgmt_read <= 0;
+				
 				 end
-	 6'b011101: begin
+	 6'b001101: begin
 	          mgmt_write <= 0;
 //				 LEDR[1] <= mgmt_readdata[0]; 
 //				 mgmt_address <= 6'b000001;
 				 mgmt_read <= 0;
 				 end
-	 6'b011110: begin
+	 6'b001110: begin
 	          mgmt_address <= 6'b000010;
 				 mgmt_writedata <= 1;
 				 mgmt_write <= 1;
 				 mgmt_read <= 0;
-				 
 				 end		 
-	 6'b011111: begin
+	 6'b001111: begin
 	          mgmt_write <= 0;
-				 reconfig <= 0;
+//				 LEDR[1] <= mgmt_readdata[0]; 
+//				 mgmt_address <= 6'b000001;
 				 mgmt_read <= 0;
+				 phup <= 0;
 				 end
 	 default: begin 
-	          reconfig <= 0;
+	          phup <= 0;
 	          mgmt_write <= 0; 
+				 mgmt_read <= 0;
 				 end 
-	 
-	 endcase
-	 end
+
+endcase				 
 end
+end
+
 
 always @(posedge CLOCK_50_B5B)
 begin
@@ -2417,7 +2651,7 @@ end
 always @(posedge CLOCK_50_B5B)
 begin
    case (reconstate)
-        6'b100000: if (refclk && reconfig) reconstate <= 6'b000000;
+        6'b100110: if (refclk && reconfig) reconstate <= 6'b000000;
 		  6'b000000: if (refclk) reconstate <= 6'b000001; // Start bit
         6'b000001: if (refclk) reconstate <= 6'b000010;    // Bit 0
         6'b000010: if (refclk) reconstate <= 6'b000011;    // Bit 1
@@ -2437,23 +2671,52 @@ begin
 		  6'b010000: if (refclk) reconstate <= 6'b010001;
 		  6'b010001: if (refclk) reconstate <= 6'b010010;    // Bit 0
         6'b010010: if (refclk) reconstate <= 6'b010011;    // Bit 1
-        6'b010011: if (refclk) reconstate <= 6'b010100;    // Bit 2
-        6'b010100: if (refclk) reconstate <= 6'b010101;    // Bit 3
-        6'b010101: if (refclk) reconstate <= 6'b010110;    // Bit 4
-        6'b010110: if (refclk) reconstate <= 6'b010111;    // Bit 6
-        6'b010111: if (refclk) reconstate <= 6'b011000;    // Bit 6
-        6'b011000: if (refclk) reconstate <= 6'b011001;    // Bit 7
-        6'b011001: if (refclk) reconstate <= 6'b011010;    // Stop bit
-		  6'b011010: if (refclk) reconstate <= 6'b011011;	  
-		  6'b011011: if (refclk) reconstate <= 6'b011100;
-		  6'b011100: if (refclk) reconstate <= 6'b011101;
-		  6'b011101: if (refclk) reconstate <= 6'b011110;
-		  6'b011110: if (refclk) reconstate <= 6'b011111;
-		  6'b011111: if (refclk) reconstate <= 6'b100000;
-		  default: reconstate <= 6'b100000;                  
+        6'b010011: if (refclk) reconstate <= 6'b100110;                 // Bit 2
+//        6'b010100: if (refclk) reconstate <= 6'b010101;    // Bit 3
+//        6'b010101: if (refclk) reconstate <= 6'b010110;    // Bit 4
+//        6'b010110: if (refclk) reconstate <= 6'b010111;    // Bit 6
+//        6'b010111: if (refclk) reconstate <= 6'b011000;    // Bit 6
+//        6'b011000: if (refclk) reconstate <= 6'b011001;    // Bit 7
+//        6'b011001: if (refclk) reconstate <= 6'b011010;    // Stop bit
+//		  6'b011010: if (refclk) reconstate <= 6'b011011;	  
+//		  6'b011011: if (refclk) reconstate <= 6'b011100;
+//		  6'b011100: if (refclk) reconstate <= 6'b011101;
+//		  6'b011101: if (refclk) reconstate <= 6'b011110;
+//		  6'b011110: if (refclk) reconstate <= 6'b011111;
+//		  6'b011111: if (refclk) reconstate <= 6'b100000;
+//		  6'b100000: if (refclk) reconstate <= 6'b100001;
+//		  6'b100001: if (refclk) reconstate <= 6'b100010;
+//		  6'b100010: if (refclk) reconstate <= 6'b100011;
+//		  6'b100011: if (refclk) reconstate <= 6'b100100;
+//		  6'b100100: if (refclk) reconstate <= 6'b100101;
+//		  6'b100101: if (refclk) reconstate <= 6'b100110;
+		  default: reconstate <= 6'b100110;                  
     endcase
 end
 	
 	
-	
+always @(posedge CLOCK_50_B5B)
+begin
+   case (preconstate)
+        6'b100110: if (refclk && phup) preconstate <= 6'b000000;
+		  6'b000000: if (refclk) preconstate <= 6'b000001; // Start bit
+        6'b000001: if (refclk) preconstate <= 6'b000010;    // Bit 0
+        6'b000010: if (refclk) preconstate <= 6'b000011;    // Bit 1
+        6'b000011: if (refclk) preconstate <= 6'b000100;    // Bit 2
+        6'b000100: if (refclk) preconstate <= 6'b000101;    // Bit 3
+        6'b000101: if (refclk) preconstate <= 6'b000110;    // Bit 4
+        6'b000110: if (refclk) preconstate <= 6'b000111;    // Bit 6
+        6'b000111: if (refclk) preconstate <= 6'b001000;    // Bit 6
+        6'b001000: if (refclk) preconstate <= 6'b001001;    // Bit 7
+        6'b001001: if (refclk) preconstate <= 6'b001010;    // Stop bit
+		  6'b001010: if (refclk) preconstate <= 6'b001011;    //operation
+		  6'b001011: if (refclk) preconstate <= 6'b001100;
+		  6'b001100: if (refclk) preconstate <= 6'b001101;
+		  6'b001101: if (refclk) preconstate <= 6'b001110;
+		  6'b001110: if (refclk) preconstate <= 6'b001111;
+		  6'b001111: if (refclk) preconstate <= 6'b100110;
+		                   // Bit 2
+	     default: preconstate <= 6'b100110;                  
+    endcase
+	end
 	endmodule	 
