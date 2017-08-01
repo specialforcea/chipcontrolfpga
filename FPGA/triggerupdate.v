@@ -1853,16 +1853,16 @@ case(status)
 		  end
 
 		  
-		  if(KEY[0] == 0) begin
-	      auxphup <= 1;
-			end
-			
-
-			if (auxphup == 1 && KEY[0] == 1) begin
-	     phup <= 1;
-		  auxphup <= 0;
-		  end
-		  
+//		  if(KEY[0] == 0) begin
+//	      auxphup <= 1;
+//			end
+//			
+//
+//			if (auxphup == 1 && KEY[0] == 1) begin
+//	     phup <= 1;
+//		  auxphup <= 0;
+//		  end
+//		  
 	 
 	 
 	 if(KEY[1] == 0) begin
@@ -2483,136 +2483,136 @@ case(reconstate)
 	 end
 	 
 	 
-if (phup == 1) begin
-case(preconstate)
-    6'b100110: begin
+//if (phup == 1) begin
+//case(preconstate)
+//    6'b100110: begin
+////	          mgmt_write <= 1;
+////				 mgmt_writedata <= 32'b00000000000000000000000000000001;
+////				 mgmt_address <= 6'b000000;
+////				 mgmt_read <= 0;
+//	          mgmt_write <= 0;
+////				 LEDR[1] <= mgmt_readdata[0]; 
+////				 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b000000: begin
+////	          mgmt_write <= 0;
+////				 LEDR[1] <= mgmt_readdata[31]; 
+////				 mgmt_address <= 6'b000001;
+////				 mgmt_read <= 1;
 //	          mgmt_write <= 1;
-//				 mgmt_writedata <= 32'b00000000000000000000000000000001;
+//				 mgmt_writedata <= 0;
 //				 mgmt_address <= 6'b000000;
 //				 mgmt_read <= 0;
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 6'b000000: begin
+////				
+//				 end
+//	 6'b000001: begin
 //	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[31]; 
-//				 mgmt_address <= 6'b000001;
-//				 mgmt_read <= 1;
-	          mgmt_write <= 1;
-				 mgmt_writedata <= 0;
-				 mgmt_address <= 6'b000000;
-				 mgmt_read <= 0;
+////				 LEDR[1] <= mgmt_readdata[0]; 
+////				 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 0;
 //				
-				 end
-	 6'b000001: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				
-				 end
-	 6'b000010: begin
-             mgmt_address <= 6'b000110;
-				 mgmt_writedata <= sft0;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-	          
+//				 end
+//	 6'b000010: begin
+//             mgmt_address <= 6'b000110;
+//				 mgmt_writedata <= sft0;
+//				 mgmt_write <= 1;
+//				 mgmt_read <= 0;
+//	          
+////				 
+//				 end
+//	 6'b000011: begin
+//	          mgmt_write <= 0;
+////			    LEDR[1] <= mgmt_readdata[0]; 
+////				 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b000100: begin	          
+//	          mgmt_address <= 6'b000110;
+//				 mgmt_writedata <= sft1;
+//				 mgmt_write <= 1;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b000101: begin
+//	           mgmt_write <= 0;
+////				 LEDR[1] <= mgmt_readdata[0]; 
+//// 			 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 0;
 //				 
-				 end
-	 6'b000011: begin
-	          mgmt_write <= 0;
-//			    LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 6'b000100: begin	          
-	          mgmt_address <= 6'b000110;
-				 mgmt_writedata <= sft1;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				 end
-	 6'b000101: begin
-	           mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-// 			 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 
-				 end
-	 6'b000110: begin
-	          mgmt_address <= 6'b000110;
-				 mgmt_writedata <= sft2;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-	          
-				 end
-	 6'b000111: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 
-	 6'b001000: begin
-             mgmt_address <= 6'b000110;
-				 mgmt_writedata <= sft3;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				 end
-	 6'b001001: begin
-	         mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 
-				 end
-    6'b001010: begin
-	          mgmt_address <= 6'b000110;
-				 mgmt_writedata <= sft4;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				 end
-	 6'b001011: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 6'b001100: begin
-	          mgmt_address <= 6'b000110;
-				 mgmt_writedata <= sft5;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				
-				 end
-	 6'b001101: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 6'b001110: begin
-	          mgmt_address <= 6'b000010;
-				 mgmt_writedata <= 1;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				 end		 
-	 6'b001111: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 phup <= 0;
-				 end
-	 default: begin 
-	          phup <= 0;
-	          mgmt_write <= 0; 
-				 mgmt_read <= 0;
-				 end 
-
-endcase				 
-end
+//				 end
+//	 6'b000110: begin
+//	          mgmt_address <= 6'b000110;
+//				 mgmt_writedata <= sft2;
+//				 mgmt_write <= 1;
+//				 mgmt_read <= 0;
+//	          
+//				 end
+//	 6'b000111: begin
+//	          mgmt_write <= 0;
+////				 LEDR[1] <= mgmt_readdata[0]; 
+////				 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 0;
+//				 end
+//	 
+//	 6'b001000: begin
+//             mgmt_address <= 6'b000110;
+//				 mgmt_writedata <= sft3;
+//				 mgmt_write <= 1;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b001001: begin
+//	         mgmt_write <= 0;
+////				 LEDR[1] <= mgmt_readdata[0]; 
+////				 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 0;
+//				 
+//				 end
+//    6'b001010: begin
+//	          mgmt_address <= 6'b000110;
+//				 mgmt_writedata <= sft4;
+//				 mgmt_write <= 1;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b001011: begin
+//	          mgmt_write <= 0;
+////				 LEDR[1] <= mgmt_readdata[0]; 
+////				 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b001100: begin
+//	          mgmt_address <= 6'b000110;
+//				 mgmt_writedata <= sft5;
+//				 mgmt_write <= 1;
+//				 mgmt_read <= 0;
+//				
+//				 end
+//	 6'b001101: begin
+//	          mgmt_write <= 0;
+////				 LEDR[1] <= mgmt_readdata[0]; 
+////				 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 0;
+//				 end
+//	 6'b001110: begin
+//	          mgmt_address <= 6'b000010;
+//				 mgmt_writedata <= 1;
+//				 mgmt_write <= 1;
+//				 mgmt_read <= 0;
+//				 end		 
+//	 6'b001111: begin
+//	          mgmt_write <= 0;
+////				 LEDR[1] <= mgmt_readdata[0]; 
+////				 mgmt_address <= 6'b000001;
+//				 mgmt_read <= 0;
+//				 phup <= 0;
+//				 end
+//	 default: begin 
+//	          phup <= 0;
+//	          mgmt_write <= 0; 
+//				 mgmt_read <= 0;
+//				 end 
+//
+//endcase				 
+//end
 end
 
 
