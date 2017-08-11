@@ -18,7 +18,7 @@ wire [0:5]Clk6;
 
 assign Clk6=refclk & refclk & refclk & refclk & refclk & refclk;
 
-assign RFout[1:6] = (MODE) ? C0[0:5] : Clk6;
-assign RFout[7:12] = (MODE) ? C0[0:5] : Clk6;
+assign RFout[1:6] =  C0[0:5];
+assign RFout[7:12] =  C0[0:5];
 
 endmodule

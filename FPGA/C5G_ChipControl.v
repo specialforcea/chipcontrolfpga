@@ -120,8 +120,23 @@ wire [0:767]nmbr;
 wire [5:0]mgmt_address;
 wire mgmt_reset;
 wire mgmt_waitrequest;
+wire reset;
+wire [7:0]div0;
+wire [7:0]div1;
+wire [7:0]div2;
+wire [7:0]div3;
+wire [7:0]div4;
+wire [7:0]div5;
 
-assign mgmt_reset = ~KEY[3];
+wire [7:0]phase_delay0;
+wire [7:0]phase_delay1;
+wire [7:0]phase_delay2;
+wire [7:0]phase_delay3;
+wire [7:0]phase_delay4;
+wire [7:0]phase_delay5;
+
+
+assign reset = ~KEY[3];
 
 // {ALTERA_IO_END} DO NOT REMOVE THIS LINE!
 // {ALTERA_MODULE_BEGIN} DO NOT REMOVE THIS LINE!
@@ -159,45 +174,83 @@ triggerupdate triggerupdate_inst(
 	
 	.KEY(KEY[3:0]),
 	.LEDR(LEDR[9:0]),
+	.div0(div0),
+	.div1(div1),
+	.div2(div2),
+	.div3(div3),
+	.div4(div4),
+	.div5(div5),
 	
-	.locked(locked),
-   .mgmt_waitrequest(mgmt_waitrequest),
-   .mgmt_readdata(mgmt_readdata[31:0]),
-   .mgmt_writedata(mgmt_writedata[31:0]),
-   .mgmt_read(mgmt_read),
-   .mgmt_write(mgmt_write),
-   .mgmt_address(mgmt_address[5:0]),
+	.phase_delay0(phase_delay0),
+	.phase_delay1(phase_delay1),
+	.phase_delay2(phase_delay2),
+	.phase_delay3(phase_delay3),
+	.phase_delay4(phase_delay4),
+	.phase_delay5(phase_delay5),
+	
+//	.locked(locked),
+//   .mgmt_waitrequest(mgmt_waitrequest),
+//   .mgmt_readdata(mgmt_readdata[31:0]),
+//   .mgmt_writedata(mgmt_writedata[31:0]),
+//   .mgmt_read(mgmt_read),
+//   .mgmt_write(mgmt_write),
+//   .mgmt_address(mgmt_address[5:0]),
    .nmbr(nmbr[0:767])
 );
 
-	// RF Sig Generator
-pll	b2v_inst(
-	.refclk( CLOCK_50_B5B),
+
+RF_gen RF_gen_inst(
+   .refclk( CLOCK_50_B5B),
 	.outclk_0(c[0]),
 	.outclk_1(c[1]),
 	.outclk_2(c[2]),
 	.outclk_3(c[3]),
 	.outclk_4(c[4]),
 	.outclk_5(c[5]),
-	.reconfig_to_pll(reconfig_to_pll),
-	.reconfig_from_pll(reconfig_from_pll),
-	.locked(locked)
-	);	
+	.div0(div0),
+	.div1(div1),
+	.div2(div2),
+	.div3(div3),
+	.div4(div4),
+	.div5(div5),
+	
+	.phase_delay0(phase_delay0),
+	.phase_delay1(phase_delay1),
+	.phase_delay2(phase_delay2),
+	.phase_delay3(phase_delay3),
+	.phase_delay4(phase_delay4),
+	.phase_delay5(phase_delay5),
+	.reset(reset),
+);
+	// RF Sig Generator
+//pll	b2v_inst(
+//	.refclk( CLOCK_50_B5B),
+//	.outclk_0(c[0]),
+//	.outclk_1(c[1]),
+//	.outclk_2(c[2]),
+//	.outclk_3(c[3]),
+//	.outclk_4(c[4]),
+//	.outclk_5(c[5]),
+//	.reconfig_to_pll(reconfig_to_pll),
+//	.reconfig_from_pll(reconfig_from_pll),
+//	.locked(locked),
+//	.rst(reset)
+//	);	
 
 	
 	
-pll_reconfig pll_reconfig_inst(
-      .mgmt_clk(CLOCK_50_B5B),
-		.mgmt_waitrequest(mgmt_waitrequest),
-      .mgmt_reset(mgmt_reset),		
-		.mgmt_readdata(mgmt_readdata),      
-		.mgmt_read(mgmt_read),        
-		.mgmt_write(mgmt_write),        
-		.mgmt_address(mgmt_address),      
-		.mgmt_writedata(mgmt_writedata),   
-		.reconfig_to_pll(reconfig_to_pll),   
-		.reconfig_from_pll(reconfig_from_pll)  
-	);
+//pll_reconfig pll_reconfig_inst(
+//      .mgmt_clk(CLOCK_50_B5B),
+//		.mgmt_waitrequest(mgmt_waitrequest),
+//      .mgmt_reset(mgmt_reset),		
+//		.mgmt_readdata(mgmt_readdata),      
+//		.mgmt_read(mgmt_read),        
+//		.mgmt_write(mgmt_write),        
+//		.mgmt_address(mgmt_address),      
+//		.mgmt_writedata(mgmt_writedata),   
+//		.reconfig_to_pll(reconfig_to_pll),   
+//		.reconfig_from_pll(reconfig_from_pll)  
+//	);
 	//Mode Selector
 ModeSelect ModeSelect_inst(
 	.refclk( CLOCK_50_B5B),

@@ -18,14 +18,20 @@ UB,
 LEDR,
 
 KEY,
+div0,
+div1,
+div2,
+div3,
+div4,
+div5,
+	
+phase_delay0,
+phase_delay1,
+phase_delay2,
+phase_delay3,
+phase_delay4,
+phase_delay5, 
 
-locked,
-mgmt_waitrequest,
-mgmt_readdata,
-mgmt_writedata,
-mgmt_read,
-mgmt_write,
-mgmt_address,
 nmbr,
 
 
@@ -38,8 +44,7 @@ input CLOCK_50_B5B;
 inout  [15:0]data;
 input readfromusb;
 input [3:0]KEY;
-input mgmt_waitrequest;
-input locked;
+
 
 
 output sendtousb;
@@ -50,17 +55,25 @@ output OE;
 output LB;
 output UB;
 output [767:0]nmbr;
-input [31:0]mgmt_readdata;
-output [31:0]mgmt_writedata;
-output [5:0]mgmt_address;
-output mgmt_read;
-output mgmt_write;
+output [7:0]div0;
+output [7:0]div1;
+output [7:0]div2;
+output [7:0]div3;
+output [7:0]div4;
+output [7:0]div5;
+
+output [7:0]phase_delay0;
+output [7:0]phase_delay1;
+output [7:0]phase_delay2;
+output [7:0]phase_delay3;
+output [7:0]phase_delay4;
+output [7:0]phase_delay5;
+
+
+
 output [9:0]LEDR;
 
 
-reg phase_en;
-reg [4:0]cntsel;
-reg updn;
 reg [17:0]address;
 reg [17:0]addresspre;
 initial addresspre = 18'b000000000000000000;
@@ -68,10 +81,9 @@ reg [17:0]addressfinal;
 initial addressfinal = 18'b000000000000000000;
 reg [5:0]state;
 reg [4:0]readstate;
-reg [5:0]reconstate = 6'b100110;
-reg [5:0]preconstate = 6'b100110;
+
 reg [2:0]upstate;
-reg reconfig = 0;
+
 reg [9:0]LEDR = 0;
 
 reg [7:0]datapre;
@@ -79,20 +91,21 @@ reg [15:0]prestoreram;
 integer datagroupnum = 0;
 integer cyclenum =0;
 
-reg [31:0]N;
-reg [31:0]M;
-reg [31:0]C0;
-reg [31:0]C1;
-reg [31:0]C2;
-reg [31:0]C3;
-reg [31:0]C4;
-reg [31:0]C5;
-reg [31:0]sft0;
-reg [31:0]sft1;
-reg [31:0]sft2;
-reg [31:0]sft3;
-reg [31:0]sft4;
-reg [31:0]sft5;
+reg [7:0]div0;
+reg [7:0]div1;
+reg [7:0]div2;
+reg [7:0]div3;
+reg [7:0]div4;
+reg [7:0]div5;
+
+reg [7:0]phase_delay0;
+reg [7:0]phase_delay1;
+reg [7:0]phase_delay2;
+reg [7:0]phase_delay3;
+reg [7:0]phase_delay4;
+reg [7:0]phase_delay5;
+
+
 reg WE;
 reg CE;
 reg OE;
@@ -100,16 +113,12 @@ reg LB;
 reg UB;
 reg [767:0]nmbr = 0;
 
-reg [31:0]mgmt_writedata;
-reg [5:0]mgmt_address;
-reg mgmt_read = 0;
-reg mgmt_write = 0;
+
 reg up = 0;
-reg phup = 0;
+
 reg show = 0;
 reg auxup = 0;
-reg auxphup = 0;
-reg auxrecon = 0;
+
 reg [12:0]clockdiv=13'b0000000000000;
 reg [6:0]clockdiv1 = 7'b0000000;
 reg [6:0]clockdiv2 = 7'b0000000;
@@ -169,22 +178,13 @@ end
 
 
 
-//always @(posedge refclk)
-//begin
-//
-//    if (clockdiv1 == 100 | readfromusb == 0)begin
-//	     clockdiv1 <= 0;
-//		  end
-//	 else if (writing == 1) begin
-//	     clockdiv1 <= clockdiv1 + 1;
-//		  end
-//end
+
 
 
 
 
 wire refclk = (clockdiv == 0);
-//wire refclk1 = (clockdiv1 == 0);
+
 
 
 
@@ -1800,18 +1800,12 @@ case(status)
 	
 	 
 	 
-//	 if(KEY[0] == 0) begin
-//	     show <= 1;
-//		  end
-//	 
+
 
     
     
 	 
-//	 if(clockdiv1 == 100) begin
-//	      addresspre <= 18'b000000000000000000;
-//			cyclenum <= 0;
-//			datagroupnum <= 0;
+
 			
 			
 	 
@@ -1825,26 +1819,10 @@ case(status)
 		  end
 
 		  
-		  if(KEY[0] == 0) begin
-	      auxphup <= 1;
-			end
-			
 
-			if (auxphup == 1 && KEY[0] == 1) begin
-	     phup <= 1;
-		  auxphup <= 0;
-		  end
 //		  
 	 
 	 
-	 if(KEY[1] == 0) begin
-	      auxrecon <= 1;
-			end
-			
-	 if (auxrecon == 1 && KEY[1] == 1) begin
-	     reconfig <= 1;
-		  auxrecon <= 0;
-		  end
 		  
 	 if (up == 1)begin
 	 case (upstate)
@@ -1883,273 +1861,136 @@ case(status)
 								address[16] <= addresspre[16];
 								address[17] <= addresspre[17];
 	 if (datagroupnum == 0) begin
-	 N[0] <=data[0];
-	 N[1] <=data[1];
-	 N[2] <=data[2];
-	 N[3] <=data[3];
-	 N[4] <=data[4];
-	 N[5] <=data[5];
-	 N[6] <=data[6];
-	 N[7] <=data[7];
-	 N[8] <=data[0];
-	 N[9] <=data[1];
-	 N[10] <=data[2];
-	 N[11] <=data[3];
-	 N[12] <=data[4];
-	 N[13] <=data[5];
-	 N[14] <=data[6];
-	 N[15] <=data[7];
-	 N[16] <= 0;
-	 N[17] <= 0;
-	 N[31:18] <= 14'b00000000000000;
+	 div0[0] <= data[0];
+	 div0[1] <= data[1];
+	 div0[2] <= data[2];
+	 div0[3] <= data[3];
+	 div0[4] <= data[4];
+	 div0[5] <= data[5];
+	 div0[6] <= data[6];
+	 div0[7] <= data[7];
+
 	 end
 	 if (datagroupnum == 1) begin
-	 M[0] <=data[0];
-	 M[1] <=data[1];
-	 M[2] <=data[2];
-	 M[3] <=data[3];
-	 M[4] <=data[4];
-	 M[5] <=data[5];
-	 M[6] <=data[6];
-	 M[7] <=data[7];
-	 M[8] <=data[0];
-	 M[9] <=data[1];
-	 M[10] <=data[2];
-	 M[11] <=data[3];
-	 M[12] <=data[4];
-	 M[13] <=data[5];
-	 M[14] <=data[6];
-	 M[15] <=data[7];
-	 M[16] <= 0;
-	 M[17] <= 0;
-	 M[31:18] <= 14'b00000000000000;
+	 div1[0] <= data[0];
+	 div1[1] <= data[1];
+	 div1[2] <= data[2];
+	 div1[3] <= data[3];
+	 div1[4] <= data[4];
+	 div1[5] <= data[5];
+	 div1[6] <= data[6];
+	 div1[7] <= data[7];
 	 end
 	 if (datagroupnum == 2) begin
-	 C0[0] <=data[0];
-	 C0[1] <=data[1];
-	 C0[2] <=data[2];
-	 C0[3] <=data[3];
-	 C0[4] <=data[4];
-	 C0[5] <=data[5];
-	 C0[6] <=data[6];
-	 C0[7] <=data[7];
-	 C0[8] <=data[0];
-	 C0[9] <=data[1];
-	 C0[10] <=data[2];
-	 C0[11] <=data[3];
-	 C0[12] <=data[4];
-	 C0[13] <=data[5];
-	 C0[14] <=data[6];
-	 C0[15] <=data[7];
-	 C0[16] <= 0;
-	 C0[17] <= 0;
-	 C0[22:18] <= 5'b00000;
-	 C0[31:23] <= 9'b000000000;
+	 div2[0] <= data[0];
+	 div2[1] <= data[1];
+	 div2[2] <= data[2];
+	 div2[3] <= data[3];
+	 div2[4] <= data[4];
+	 div2[5] <= data[5];
+	 div2[6] <= data[6];
+	 div2[7] <= data[7];
 	 end
 	 if (datagroupnum == 3) begin
-	 C1[0] <=data[0];
-	 C1[1] <=data[1];
-	 C1[2] <=data[2];
-	 C1[3] <=data[3];
-	 C1[4] <=data[4];
-	 C1[5] <=data[5];
-	 C1[6] <=data[6];
-	 C1[7] <=data[7];
-	 C1[8] <=data[0];
-	 C1[9] <=data[1];
-	 C1[10] <=data[2];
-	 C1[11] <=data[3];
-	 C1[12] <=data[4];
-	 C1[13] <=data[5];
-	 C1[14] <=data[6];
-	 C1[15] <=data[7];
-	 C1[16] <= 0;
-	 C1[17] <= 0;
-	 C1[22:18] <= 5'b00001;
-	 C1[31:23] <= 9'b000000000;
+	 div3[0] <= data[0];
+	 div3[1] <= data[1];
+	 div3[2] <= data[2];
+	 div3[3] <= data[3];
+	 div3[4] <= data[4];
+	 div3[5] <= data[5];
+	 div3[6] <= data[6];
+	 div3[7] <= data[7];
 	 end
 	 if (datagroupnum == 4) begin
-	 C2[0] <=data[0];
-	 C2[1] <=data[1];
-	 C2[2] <=data[2];
-	 C2[3] <=data[3];
-	 C2[4] <=data[4];
-	 C2[5] <=data[5];
-	 C2[6] <=data[6];
-	 C2[7] <=data[7];
-	 C2[8] <=data[0];
-	 C2[9] <=data[1];
-	 C2[10] <=data[2];
-	 C2[11] <=data[3];
-	 C2[12] <=data[4];
-	 C2[13] <=data[5];
-	 C2[14] <=data[6];
-	 C2[15] <=data[7];
-	 C2[16] <= 0;
-	 C2[17] <= 0;
-	 C2[22:18] <= 5'b00010;
-	 C2[31:23] <= 9'b000000000;
+	 div4[0] <= data[0];
+	 div4[1] <= data[1];
+	 div4[2] <= data[2];
+	 div4[3] <= data[3];
+	 div4[4] <= data[4];
+	 div4[5] <= data[5];
+	 div4[6] <= data[6];
+	 div4[7] <= data[7];
 	 end
 	 if (datagroupnum == 5) begin
-	 C3[0] <=data[0];
-	 C3[1] <=data[1];
-	 C3[2] <=data[2];
-	 C3[3] <=data[3];
-	 C3[4] <=data[4];
-	 C3[5] <=data[5];
-	 C3[6] <=data[6];
-	 C3[7] <=data[7];
-	 C3[8] <=data[0];
-	 C3[9] <=data[1];
-	 C3[10] <=data[2];
-	 C3[11] <=data[3];
-	 C3[12] <=data[4];
-	 C3[13] <=data[5];
-	 C3[14] <=data[6];
-	 C3[15] <=data[7];
-	 C3[16] <= 0;
-	 C3[17] <= 0;
-	 C3[22:18] <= 5'b00011;
-	 C3[31:23] <= 9'b000000000;
+	 div5[0] <= data[0];
+	 div5[1] <= data[1];
+	 div5[2] <= data[2];
+	 div5[3] <= data[3];
+	 div5[4] <= data[4];
+	 div5[5] <= data[5];
+	 div5[6] <= data[6];
+	 div5[7] <= data[7];
 	 end
 	 if (datagroupnum == 6) begin
-	 C4[0] <=data[0];
-	 C4[1] <=data[1];
-	 C4[2] <=data[2];
-	 C4[3] <=data[3];
-	 C4[4] <=data[4];
-	 C4[5] <=data[5];
-	 C4[6] <=data[6];
-	 C4[7] <=data[7];
-	 C4[8] <=data[0];
-	 C4[9] <=data[1];
-	 C4[10] <=data[2];
-	 C4[11] <=data[3];
-	 C4[12] <=data[4];
-	 C4[13] <=data[5];
-	 C4[14] <=data[6];
-	 C4[15] <=data[7];
-	 C4[16] <= 0;
-	 C4[17] <= 0;
-	 C4[22:18] <= 5'b00100;
-	 C4[31:23] <= 9'b000000000;
+	 phase_delay0[0] <= data[0];
+	 phase_delay0[1] <= data[1];
+	 phase_delay0[2] <= data[2];
+	 phase_delay0[3] <= data[3];
+	 phase_delay0[4] <= data[4];
+	 phase_delay0[5] <= data[5];
+	 phase_delay0[6] <= data[6];
+	 phase_delay0[7] <= data[7];
 	 end
 	 if (datagroupnum == 7) begin
-	 C5[0] <=data[0];
-	 C5[1] <=data[1];
-	 C5[2] <=data[2];
-	 C5[3] <=data[3];
-	 C5[4] <=data[4];
-	 C5[5] <=data[5];
-	 C5[6] <=data[6];
-	 C5[7] <=data[7];
-	 C5[8] <=data[0];
-	 C5[9] <=data[1];
-	 C5[10] <=data[2];
-	 C5[11] <=data[3];
-	 C5[12] <=data[4];
-	 C5[13] <=data[5];
-	 C5[14] <=data[6];
-	 C5[15] <=data[7];
-	 C5[16] <= 0;
-	 C5[17] <= 0;
-	 C5[22:18] <= 5'b00101;
-	 C5[31:23] <= 9'b000000000;
+	 phase_delay1[0] <= data[0];
+	 phase_delay1[1] <= data[1];
+	 phase_delay1[2] <= data[2];
+	 phase_delay1[3] <= data[3];
+	 phase_delay1[4] <= data[4];
+	 phase_delay1[5] <= data[5];
+	 phase_delay1[6] <= data[6];
+	 phase_delay1[7] <= data[7];
 	 end
 	 if (datagroupnum == 8) begin
-	 sft0[0] <=data[0];
-	 sft0[1] <=data[1];
-	 sft0[2] <=data[2];
-	 sft0[3] <=data[3];
-	 sft0[4] <=data[4];
-	 sft0[5] <=data[5];
-	 sft0[6] <=data[6];
-	 sft0[7] <=data[7];
-	 sft0[15:8] <= 8'b00000000;
-	 sft0[20:16] <= 5'b00000;
-	 sft0[21] <= 0;
-	 sft0[31:22] <= 10'b0000000000;
+	 phase_delay2[0] <= data[0];
+	 phase_delay2[1] <= data[1];
+	 phase_delay2[2] <= data[2];
+	 phase_delay2[3] <= data[3];
+	 phase_delay2[4] <= data[4];
+	 phase_delay2[5] <= data[5];
+	 phase_delay2[6] <= data[6];
+	 phase_delay2[7] <= data[7];
 	 end
 	 if (datagroupnum == 9) begin
-	 sft1[0] <=data[0];
-	 sft1[1] <=data[1];
-	 sft1[2] <=data[2];
-	 sft1[3] <=data[3];
-	 sft1[4] <=data[4];
-	 sft1[5] <=data[5];
-	 sft1[6] <=data[6];
-	 sft1[7] <=data[7];
-	 sft1[15:8] <= 8'b00000000;
-	 sft1[20:16] <= 5'b00001;
-	 sft1[21] <= 0;
-	 sft1[31:22] <= 10'b0000000000;
+	 phase_delay3[0] <= data[0];
+	 phase_delay3[1] <= data[1];
+	 phase_delay3[2] <= data[2];
+	 phase_delay3[3] <= data[3];
+	 phase_delay3[4] <= data[4];
+	 phase_delay3[5] <= data[5];
+	 phase_delay3[6] <= data[6];
+	 phase_delay3[7] <= data[7];
 	 end
 	 if (datagroupnum == 10) begin
-	 sft2[0] <=data[0];
-	 sft2[1] <=data[1];
-	 sft2[2] <=data[2];
-	 sft2[3] <=data[3];
-	 sft2[4] <=data[4];
-	 sft2[5] <=data[5];
-	 sft2[6] <=data[6];
-	 sft2[7] <=data[7];
-	 sft2[15:8] <= 8'b00000000;
-	 sft2[20:16] <= 5'b00010;
-	 sft2[21] <= 0;
-	 sft2[31:22] <= 10'b0000000000;
+	 phase_delay4[0] <= data[0];
+	 phase_delay4[1] <= data[1];
+	 phase_delay4[2] <= data[2];
+	 phase_delay4[3] <= data[3];
+	 phase_delay4[4] <= data[4];
+	 phase_delay4[5] <= data[5];
+	 phase_delay4[6] <= data[6];
+	 phase_delay4[7] <= data[7];
 	 end
 	 if (datagroupnum == 11) begin
-	 sft3[0] <=data[0];
-	 sft3[1] <=data[1];
-	 sft3[2] <=data[2];
-	 sft3[3] <=data[3];
-	 sft3[4] <=data[4];
-	 sft3[5] <=data[5];
-	 sft3[6] <=data[6];
-	 sft3[7] <=data[7];
-	 sft3[15:8] <= 8'b00000000;
-	 sft3[20:16] <= 5'b00011;
-	 sft3[21] <= 0;
-	 sft3[31:22] <= 10'b0000000000;
+	 phase_delay5[0] <= data[0];
+	 phase_delay5[1] <= data[1];
+	 phase_delay5[2] <= data[2];
+	 phase_delay5[3] <= data[3];
+	 phase_delay5[4] <= data[4];
+	 phase_delay5[5] <= data[5];
+	 phase_delay5[6] <= data[6];
+	 phase_delay5[7] <= data[7];
 	 end
-	 if (datagroupnum == 12) begin
-	 sft4[0] <=data[0];
-	 sft4[1] <=data[1];
-	 sft4[2] <=data[2];
-	 sft4[3] <=data[3];
-	 sft4[4] <=data[4];
-	 sft4[5] <=data[5];
-	 sft4[6] <=data[6];
-	 sft4[7] <=data[7];
-	 sft4[15:8] <= 8'b00000000;
-	 sft4[20:16] <= 5'b00100;
-	 sft4[21] <= 0;
-	 sft4[31:22] <= 10'b0000000000;
-	 end
-	 if (datagroupnum == 13) begin
-	 sft5[0] <=data[0];
-	 sft5[1] <=data[1];
-	 sft5[2] <=data[2];
-	 sft5[3] <=data[3];
-	 sft5[4] <=data[4];
-	 sft5[5] <=data[5];
-	 sft5[6] <=data[6];
-	 sft5[7] <=data[7];
-	 sft5[15:8] <= 8'b00000000;
-	 sft5[20:16] <= 5'b00101;
-	 sft5[21] <= 0;
-	 sft5[31:22] <= 10'b0000000000;
-	 //reconfig <= 1;
-	 end
-	 if (datagroupnum > 13 ) begin
-	 nmbr[(datagroupnum-14)*8+0] <= data[0];
-	 nmbr[(datagroupnum-14)*8+1] <= data[1];
-	 nmbr[(datagroupnum-14)*8+2] <= data[2];
-	 nmbr[(datagroupnum-14)*8+3] <= data[3];
-	 nmbr[(datagroupnum-14)*8+4] <= data[4];
-	 nmbr[(datagroupnum-14)*8+5] <= data[5];
-	 nmbr[(datagroupnum-14)*8+6] <= data[6];
-	 nmbr[(datagroupnum-14)*8+7] <= data[7];
+	
+	 if (datagroupnum > 11 ) begin
+	 nmbr[(datagroupnum-12)*8+0] <= data[0];
+	 nmbr[(datagroupnum-12)*8+1] <= data[1];
+	 nmbr[(datagroupnum-12)*8+2] <= data[2];
+	 nmbr[(datagroupnum-12)*8+3] <= data[3];
+	 nmbr[(datagroupnum-12)*8+4] <= data[4];
+	 nmbr[(datagroupnum-12)*8+5] <= data[5];
+	 nmbr[(datagroupnum-12)*8+6] <= data[6];
+	 nmbr[(datagroupnum-12)*8+7] <= data[7];
 	 
 	 LEDR[0] <= 1;
 	 
@@ -2164,7 +2005,7 @@ case(status)
 	      UB <= 1'bZ;
 			
 	 if (addone == 0)begin		
-	 if(datagroupnum == 109) begin
+	 if(datagroupnum == 107) begin
 	 cyclenum <= cyclenum + 1;
 	 up <= 0;
 	 datagroupnum <= 0;
@@ -2187,405 +2028,10 @@ case(status)
 		endcase
 end
 
-if (mgmt_readdata[0] == 1) LEDR[5] <= 1;  
-LEDR[4] <= reconfig;
-LEDR[3] <= ~locked;
-LEDR[7] <= mgmt_waitrequest;
-LEDR[6] <= phup;
-if (reconfig == 1) begin
-case(reconstate)
-    6'b100110: begin
-//	          mgmt_write <= 1;
-//				 mgmt_writedata <= 32'b00000000000000000000000000000001;
-//				 mgmt_address <= 6'b000000;
-//				 mgmt_read <= 0;
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 6'b000000: begin
-//	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[31]; 
-//				 mgmt_address <= 6'b000001;
-//				 mgmt_read <= 1;
-	          mgmt_write <= 1;
-				 mgmt_writedata <= 0;
-				 mgmt_address <= 6'b000000;
-				 mgmt_read <= 0;
-//				
-				 end
-	 6'b000001: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				
-				 end
-	 6'b000010: begin
-//	          
-	          mgmt_address <= 6'b000011;
-				 mgmt_writedata <= N;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-//				 
-				 end
-	 6'b000011: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 6'b000100: begin	          
-	          mgmt_address <= 6'b000100;
-				 mgmt_writedata <= M;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				 end
-	 6'b000101: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 
-				 end
-	 6'b000110: begin
-	          
-	          mgmt_address <= 6'b000101;
-				 mgmt_writedata <= C0;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				 end
-	 6'b000111: begin
-	          mgmt_write <= 0;
-//			    LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 
-	 6'b001000: begin
-             mgmt_address <= 6'b000101;
-				 mgmt_writedata <= C1;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				 end
-	 6'b001001: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-// 			 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 
-				 end
-    6'b001010: begin
-	          mgmt_address <= 6'b000101;
-				 mgmt_writedata <= C2;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				 end
-	 6'b001011: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 6'b001100: begin
-	          mgmt_address <= 6'b000101;
-				 mgmt_writedata <= C3;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				 end
-	 6'b001101: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 6'b001110: begin
-	          mgmt_address <= 6'b000101;
-				 mgmt_writedata <= C4;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				 end		 
-	 6'b001111: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 6'b010000: begin
-	          mgmt_address <= 6'b000101;
-				 mgmt_writedata <= C5;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				
-				 end
-	 6'b010001: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				
-				 end
-	 6'b010010: begin
-	          mgmt_address <= 6'b000010;
-				 mgmt_writedata <= 1;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				 
-				 end
-	 6'b010011: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 reconfig <= 0;
-				 end
-//	 6'b010100: begin
-//	          mgmt_write <= 1;
-//				 mgmt_writedata <= 0;
-//				 mgmt_address <= 6'b000000;
-//				 mgmt_read <= 0;
-//				 end
-//	 6'b010101: begin
-//	          mgmt_write <= 0;
-////				 LEDR[1] <= mgmt_readdata[0]; 
-////				 mgmt_address <= 6'b000001;
-//				 mgmt_read <= 0;
-//				 end
-//	 6'b010110: begin
-//	          mgmt_address <= 6'b000110;
-//				 mgmt_writedata <= sft0;
-//				 mgmt_write <= 1;
-//				 mgmt_read <= 0;
-//				 end
-//	 6'b010111: begin
-//	          mgmt_write <= 0;
-////				 LEDR[1] <= mgmt_readdata[0]; 
-////				 mgmt_address <= 6'b000001;
-//				 mgmt_read <= 0;
-//				 end
-//	 6'b011000: begin
-//	          mgmt_address <= 6'b000110;
-//				 mgmt_writedata <= sft1;
-//				 mgmt_write <= 1;
-//				 mgmt_read <= 0;
-//				 end
-//	 6'b011001: begin
-//	          mgmt_write <= 0;
-////				 LEDR[1] <= mgmt_readdata[0]; 
-////				 mgmt_address <= 6'b000001;
-//				 mgmt_read <= 0;
-//				 end
-//    6'b011010: begin
-//	          mgmt_address <= 6'b000110;
-//				 mgmt_writedata <= sft2;
-//				 mgmt_write <= 1;
-//				 mgmt_read <= 0;
-//				 end
-//	 6'b011011: begin
-//	          mgmt_write <= 0;
-////				 LEDR[1] <= mgmt_readdata[0]; 
-////				 mgmt_address <= 6'b000001;
-//				 mgmt_read <= 0;
-//				 end
-//	 6'b011100: begin
-//	          mgmt_address <= 6'b000110;
-//				 mgmt_writedata <= sft3;
-//				 mgmt_write <= 1;
-//				 mgmt_read <= 0;
-//				 end
-//	 6'b011101: begin
-//	          mgmt_write <= 0;
-////				 LEDR[1] <= mgmt_readdata[0]; 
-////				 mgmt_address <= 6'b000001;
-//				 mgmt_read <= 0;
-//				 end
-//	 6'b011110: begin
-//	          mgmt_address <= 6'b000110;
-//				 mgmt_writedata <= sft4;
-//				 mgmt_write <= 1;
-//				 mgmt_read <= 0;
-//				 
-//				 end		 
-//	 6'b011111: begin
-//	          mgmt_write <= 0;
-//				 //reconfig <= 0;
-//				 mgmt_read <= 0;
-//				 end
-//	 6'b100000: begin
-//	          mgmt_address <= 6'b000110;
-//				 mgmt_writedata <= sft5;
-//				 mgmt_write <= 1;
-//				 mgmt_read <= 0;
-//				 end
-//	 6'b100001: begin
-//	          mgmt_write <= 0;
-//				 //reconfig <= 0;
-//				 mgmt_read <= 0;
-//				 end
-//	 6'b100010: begin
-//	          mgmt_address <= 6'b000010;
-//				 mgmt_writedata <= 1;
-//				 mgmt_write <= 1;
-//				 mgmt_read <= 0;
-//				 end
-//	 6'b100011: begin
-//	          mgmt_write <= 0;
-//				 //reconfig <= 0;
-//				 mgmt_read <= 0;
-//				 end
-//	 6'b100100: begin
-//	          mgmt_write <= 0;
-//				 mgmt_address <= 6'b000001;
-//				 mgmt_read <= 1;
-//				 end
-//	 6'b100101: begin
-//	          mgmt_write <= 0;
-//				 reconfig <= 0;
-//				 //mgmt_address <= 6'b000001;
-//				 mgmt_read <= 0;
-//				 end
-	 default: begin 
-	          reconfig <= 0;
-	          mgmt_write <= 0; 
-				 mgmt_read <= 0;
-				 end 
-	 
-	 endcase
-	 end
-	 
-	 
-if (phup == 1) begin
-case(preconstate)
-    6'b100110: begin
-//	          mgmt_write <= 1;
-//				 mgmt_writedata <= 32'b00000000000000000000000000000001;
-//				 mgmt_address <= 6'b000000;
-//				 mgmt_read <= 0;
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 6'b000000: begin
-//	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[31]; 
-//				 mgmt_address <= 6'b000001;
-//				 mgmt_read <= 1;
-	          mgmt_write <= 1;
-				 mgmt_writedata <= 0;
-				 mgmt_address <= 6'b000000;
-				 mgmt_read <= 0;
-//				
-				 end
-	 6'b000001: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				
-				 end
-	 6'b000010: begin
-             mgmt_address <= 6'b000110;
-				 mgmt_writedata <= sft0;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-	          
-//				 
-				 end
-	 6'b000011: begin
-	          mgmt_write <= 0;
-//			    LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 6'b000100: begin	          
-	          mgmt_address <= 6'b000110;
-				 mgmt_writedata <= sft1;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				 end
-	 6'b000101: begin
-	           mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-// 			 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 
-				 end
-	 6'b000110: begin
-	          mgmt_address <= 6'b000110;
-				 mgmt_writedata <= sft2;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-	          
-				 end
-	 6'b000111: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 
-	 6'b001000: begin
-             mgmt_address <= 6'b000110;
-				 mgmt_writedata <= sft3;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				 end
-	 6'b001001: begin
-	         mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 
-				 end
-    6'b001010: begin
-	          mgmt_address <= 6'b000110;
-				 mgmt_writedata <= sft4;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				 end
-	 6'b001011: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 6'b001100: begin
-	          mgmt_address <= 6'b000110;
-				 mgmt_writedata <= sft5;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				
-				 end
-	 6'b001101: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 end
-	 6'b001110: begin
-	          mgmt_address <= 6'b000010;
-				 mgmt_writedata <= 1;
-				 mgmt_write <= 1;
-				 mgmt_read <= 0;
-				 end		 
-	 6'b001111: begin
-	          mgmt_write <= 0;
-//				 LEDR[1] <= mgmt_readdata[0]; 
-//				 mgmt_address <= 6'b000001;
-				 mgmt_read <= 0;
-				 phup <= 0;
-				 end
-	 default: begin 
-	          phup <= 0;
-	          mgmt_write <= 0; 
-				 mgmt_read <= 0;
-				 end 
 
-endcase				 
 end
-end
+
+
 
 
 always @(posedge CLOCK_50_B5B)
@@ -2620,75 +2066,5 @@ begin
     endcase
 end
 
-always @(posedge CLOCK_50_B5B)
-begin
-   case (reconstate)
-        6'b100110: if (refclk && reconfig) reconstate <= 6'b000000;
-		  6'b000000: if (refclk) reconstate <= 6'b000001; // Start bit
-        6'b000001: if (refclk) reconstate <= 6'b000010;    // Bit 0
-        6'b000010: if (refclk) reconstate <= 6'b000011;    // Bit 1
-        6'b000011: if (refclk) reconstate <= 6'b000100;    // Bit 2
-        6'b000100: if (refclk) reconstate <= 6'b000101;    // Bit 3
-        6'b000101: if (refclk) reconstate <= 6'b000110;    // Bit 4
-        6'b000110: if (refclk) reconstate <= 6'b000111;    // Bit 6
-        6'b000111: if (refclk) reconstate <= 6'b001000;    // Bit 6
-        6'b001000: if (refclk) reconstate <= 6'b001001;    // Bit 7
-        6'b001001: if (refclk) reconstate <= 6'b001010;    // Stop bit
-		  6'b001010: if (refclk) reconstate <= 6'b001011;    //operation
-		  6'b001011: if (refclk) reconstate <= 6'b001100;
-		  6'b001100: if (refclk) reconstate <= 6'b001101;
-		  6'b001101: if (refclk) reconstate <= 6'b001110;
-		  6'b001110: if (refclk) reconstate <= 6'b001111;
-		  6'b001111: if (refclk) reconstate <= 6'b010000;
-		  6'b010000: if (refclk) reconstate <= 6'b010001;
-		  6'b010001: if (refclk) reconstate <= 6'b010010;    // Bit 0
-        6'b010010: if (refclk) reconstate <= 6'b010011;    // Bit 1
-        6'b010011: if (refclk) reconstate <= 6'b100110;                 // Bit 2
-//        6'b010100: if (refclk) reconstate <= 6'b010101;    // Bit 3
-//        6'b010101: if (refclk) reconstate <= 6'b010110;    // Bit 4
-//        6'b010110: if (refclk) reconstate <= 6'b010111;    // Bit 6
-//        6'b010111: if (refclk) reconstate <= 6'b011000;    // Bit 6
-//        6'b011000: if (refclk) reconstate <= 6'b011001;    // Bit 7
-//        6'b011001: if (refclk) reconstate <= 6'b011010;    // Stop bit
-//		  6'b011010: if (refclk) reconstate <= 6'b011011;	  
-//		  6'b011011: if (refclk) reconstate <= 6'b011100;
-//		  6'b011100: if (refclk) reconstate <= 6'b011101;
-//		  6'b011101: if (refclk) reconstate <= 6'b011110;
-//		  6'b011110: if (refclk) reconstate <= 6'b011111;
-//		  6'b011111: if (refclk) reconstate <= 6'b100000;
-//		  6'b100000: if (refclk) reconstate <= 6'b100001;
-//		  6'b100001: if (refclk) reconstate <= 6'b100010;
-//		  6'b100010: if (refclk) reconstate <= 6'b100011;
-//		  6'b100011: if (refclk) reconstate <= 6'b100100;
-//		  6'b100100: if (refclk) reconstate <= 6'b100101;
-//		  6'b100101: if (refclk) reconstate <= 6'b100110;
-		  default: reconstate <= 6'b100110;                  
-    endcase
-end
-	
-	
-always @(posedge CLOCK_50_B5B)
-begin
-   case (preconstate)
-        6'b100110: if (refclk && phup) preconstate <= 6'b000000;
-		  6'b000000: if (refclk) preconstate <= 6'b000001; // Start bit
-        6'b000001: if (refclk) preconstate <= 6'b000010;    // Bit 0
-        6'b000010: if (refclk) preconstate <= 6'b000011;    // Bit 1
-        6'b000011: if (refclk) preconstate <= 6'b000100;    // Bit 2
-        6'b000100: if (refclk) preconstate <= 6'b000101;    // Bit 3
-        6'b000101: if (refclk) preconstate <= 6'b000110;    // Bit 4
-        6'b000110: if (refclk) preconstate <= 6'b000111;    // Bit 6
-        6'b000111: if (refclk) preconstate <= 6'b001000;    // Bit 6
-        6'b001000: if (refclk) preconstate <= 6'b001001;    // Bit 7
-        6'b001001: if (refclk) preconstate <= 6'b001010;    // Stop bit
-		  6'b001010: if (refclk) preconstate <= 6'b001011;    //operation
-		  6'b001011: if (refclk) preconstate <= 6'b001100;
-		  6'b001100: if (refclk) preconstate <= 6'b001101;
-		  6'b001101: if (refclk) preconstate <= 6'b001110;
-		  6'b001110: if (refclk) preconstate <= 6'b001111;
-		  6'b001111: if (refclk) preconstate <= 6'b100110;
-		                   // Bit 2
-	     default: preconstate <= 6'b100110;                  
-    endcase
-	end
+
 	endmodule	 
