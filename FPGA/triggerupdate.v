@@ -34,7 +34,7 @@ phase_delay5,
 
 nmbr,
 
-
+DIO,
 
 );
 
@@ -44,7 +44,7 @@ input CLOCK_50_B5B;
 inout  [15:0]data;
 input readfromusb;
 input [3:0]KEY;
-
+input	[1:4]	DIO;
 
 
 output sendtousb;
@@ -1809,11 +1809,11 @@ case(status)
 			
 			
 	 
-	 if(KEY[2] == 0) begin
+	 if(DIO[2] == 1) begin
 	      auxup <= 1;
 			end
 			
-	 if (auxup == 1 && KEY[2] == 1) begin
+	 if (auxup == 1 && DIO[2] == 0) begin
 	     up <= 1;
 		  auxup <= 0;
 		  end
@@ -1833,7 +1833,7 @@ case(status)
 				    OE <= 1'bZ;							          
 	             LB <= 1'bZ;
 	             UB <= 1'bZ;
-					 addresspre <= cyclenum * 110 + datagroupnum;
+					 addresspre <= cyclenum * 108 + datagroupnum;
 					 end
 					 
 			3'b001:begin

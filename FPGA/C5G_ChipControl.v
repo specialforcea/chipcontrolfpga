@@ -172,6 +172,7 @@ triggerupdate triggerupdate_inst(
    .LB(LB),
    .UB(UB),
 	
+	.DIO(DIO[1:4]),
 	.KEY(KEY[3:0]),
 	.LEDR(LEDR[9:0]),
 	.div0(div0),
